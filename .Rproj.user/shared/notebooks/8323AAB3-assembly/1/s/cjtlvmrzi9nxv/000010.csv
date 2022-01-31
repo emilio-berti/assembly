@@ -1,0 +1,1 @@
+"0","plot(graph_from_adjacency_matrix(adirondack[sp, sp]), vertex.label = NA)"

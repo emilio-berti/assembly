@@ -1,0 +1,39 @@
+---
+title: "assembly"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{assembly}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r random, fig.align='center', fig.width=4, fig.height=4}
+library(assembly)
+library(igraph)
+
+set.seed(1234)
+
+data(adirondack) #load Adirondack dataset
+
+S <- 50 #species richness
+sp <- draw_random_species(S, colnames(adirondack)) #draw 50 random species
+sum(colSums(adirondack[sp, sp]) == 0) #20 basal species
+show_fw(sp, adirondack, title = "Random")
+plot(graph_from_adjacency_matrix(adirondack[sp, sp]), vertex.label = NA)
+```
+
+To impose the resource filtering, use the function `resource_filtering()`. This takes as input the species names, the metaweb, and an optional argument _keep.n.basal_ to specify weather the original number of basal species should be kept constant (default = `FALSE`). **NOTE this still not implemented correctly***
+
+```{r resource, fig.align='center', fig.width=4, fig.height=4}
+sp_resource <- resource_filtering(sp, adirondack, keep.n.basal = TRUE)
+sum(colSums(adirondack[sp_resource, sp_resource]) == 0) #20 basal species
+show_fw(sp_resource, adirondack, title = "Resource filtering")
+plot(graph_from_adjacency_matrix(adirondack[sp_resource, sp_resource]), vertex.label = NA)
+```
