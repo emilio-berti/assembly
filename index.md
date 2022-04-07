@@ -25,6 +25,8 @@ I show an example workflow that is composed of the following steps:
 
 ## Draw random species from a metaweb
 
+Loading the required libraries and set a random seed:
+
 ``` r
 library(assembly)
 library(igraph)
@@ -38,29 +40,63 @@ library(igraph)
 #>     union
 
 set.seed(1234)
-
-# load Adirondack dataset
-# this is part of the assembly package
-data(adirondack) 
-
-S <- 50 #species richness
-sp <- draw_random_species(S, colnames(adirondack)) #draw 50 random species
-sum(colSums(adirondack[sp, sp]) == 0) #20 basal species
-#> [1] 20
-show_fw(sp, adirondack, title = "Random")
 ```
 
-<img src="man/figures/README-random-1.png" width="100%" style="display: block; margin: auto;" />
+Load the dataset *adirondack* that comes with *assembly*:
 
 ``` r
+data(adirondack)
+```
+
+*adirondack* is the Adirondack Lakes metaweb as obtained from the
+GATEWAy database.
+
+Define the number of species for the local community:
+
+``` r
+S <- 50 #species richness
+```
+
+To draw a random community, use the function `draw_random_species()`:
+
+``` r
+sp <- draw_random_species(S, colnames(adirondack))
+sum(colSums(adirondack[sp, sp]) == 0) #20 basal speciesshow_fw(sp, adirondack, title = "Random")
+#> [1] 20
 plot(graph_from_adjacency_matrix(adirondack[sp, sp]), vertex.label = NA)
 ```
 
-<img src="man/figures/README-random-2.png" width="100%" style="display: block; margin: auto;" />
+<img src="man/figures/README-random-1.png" width="50%" style="display: block; margin: auto;" />
 
-You can see that some species are isolated, i.e. they do not interact
-with any other species in the local community. You can find isolated
-species with the hidden function `assembly:::.find_isolated()`.
+## Hidden functions
+
+There are several hidden functions in *assembly*. The reason there are
+hidden functions is because there is no need to call them directly.
+Hidden functions can be accessed by prefixing the `assembly:::` (three
+colon, not two). All hidden functions start with a dot `.`,
+e.g. `assembly:::.basals()`.
+
+In general, you should not be bothered by hidden functions and should
+not call them directly, unless you have a good understanding of how they
+operate. Nevertheless, I summarize them for clarity.
+
+`assembly:::.basals()` get all basal species in the metaweb, and is
+equivalent to subset the names of the metaweb where
+`colSums(metaweb) == 0`:
+
+``` r
+identical(
+  sort(intersect(assembly:::.basals(adirondack), sp)),
+  sort(intersect(colnames(adirondack)[colSums(adirondack) == 0], sp))
+)
+#> [1] TRUE
+```
+
+`assembly:::.consumers()` and `assembly:::.top()` return the consumers
+and top consumers of the metaweb, respectively.
+
+`assembly:::.find_isolated()` returns the species that are isolated in
+the local community:
 
 ``` r
 assembly:::.find_isolated(sp, adirondack)
@@ -68,40 +104,82 @@ assembly:::.find_isolated(sp, adirondack)
 #> [4] "Coelosphaerium sp."    "Scenedesmus serratus"  "Kirchneriella lunaris"
 ```
 
-Similarly, it’s possible to obtain the number of weakly connected
-components of the graph of the local community:
+`assembly:::.find_replacements()` find suitable replacement for the
+isolated species:
+
+``` r
+assembly:::.find_replacements(sp,
+                              assembly:::.find_isolated(sp, adirondack),
+                              adirondack,
+                              keep.n.basal = TRUE)
+#> [1] "Osmerus mordax"     "Cosmarium sp."      "Staurastrum sp."   
+#> [4] "Desmidium sp."      "Anabaena sp."       "Xanthidium armatum"
+```
+
+If *keep.n.basal* is TRUE (default = FALSE), then the original number of
+basal species will not change.
+
+`assembly:::.move()` performs a move in the limiting similarity
+procedure (more about this later):
+
+``` r
+tryCatch(assembly:::.move(sp, adirondack, t = 1),
+         error = function(e) print(e))
+#> <simpleError in assembly:::.move(sp, adirondack, t = 1): Isolated species detected in input>
+```
+
+This call to `assembly:::.move()` fails because isolated species are
+detected in the input. This is a desired property of the function,
+i.e. it fails when there is an unexpected behavior. All hidden functions
+have some kind of behavior-check, which is a safety net to assure the
+code is doing what you asked for.
+
+Finally, `assembly:::.components()` returns the number of connected
+components in the graph of the local community:
 
 ``` r
 assembly:::.components(sp, adirondack)
 #> [1] 6
 ```
 
-The reason there are hidden functions in *assembly* is because there is
-no need to call them directly. Hidden functions can be accessed by
-prefixing the `assembly:::` (three colon, not two).
+Usually, a proper food web has only one component, i.e. all species are
+connected by a path. Having more than one component means that the food
+web is actually made of several disconnected communities. In the case
+above, it also means that at least one of this disconnected communities
+is composed of only one isolated species.
+
+## Resouce filtering
 
 To impose the resource filtering, I call the function
 `resource_filtering()`. This takes as input the species names, the
 metaweb, and an optional argument *keep.n.basal* to specify weather the
 original number of basal species should be kept constant (default =
-`FALSE`). **NOTE this still not implemented correctly**\*
+`FALSE`). **NOTE this may not be implemented correctly**
+
+Behind the curtain, `resource_filtering()` calls the hidden functions as
+a way to compress code and make it consistent. That’s why you shouldn’t
+bother too much about hidden functions: they’re there because they’re
+useful in the development of the package, rather than for your usage. If
+they’re useful for you and you understand how they work, use them.
 
 ``` r
 sp_resource <- resource_filtering(sp, adirondack, keep.n.basal = TRUE)
 show_fw(sp_resource, adirondack, title = "Resource filtering")
 ```
 
-<img src="man/figures/README-resource-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="man/figures/README-resource-1.png" width="50%" style="display: block; margin: auto;" />
 
 ``` r
-plot(graph_from_adjacency_matrix(adirondack[sp_resource, sp_resource]), vertex.label = NA)
+plot(graph_from_adjacency_matrix(adirondack[sp_resource, sp_resource]),
+     vertex.label = NA)
 ```
 
-<img src="man/figures/README-resource-2.png" width="100%" style="display: block; margin: auto;" />
+<img src="man/figures/README-resource-2.png" width="50%" style="display: block; margin: auto;" />
+
 Now the local community is fully connected, i.e. basal species always
 have a consumer and consumers always have an available resource. It’s
-possible to check this manually calling other hidden functions and
-working on the adjacency matrix of the local community:
+possible to check this manually calling the hidden functions and working
+on the adjacency matrix of the local community:
 
 ``` r
 bas <- intersect(sp_resource, assembly:::.basals(adirondack))
@@ -112,12 +190,46 @@ all(colSums(adirondack[union(bas, cons), cons]) > 0)
 #> [1] TRUE
 ```
 
-In general, there is no need to check this, as if this is not the case
-`resource_filtering()` will fail: **put example here.**
+Usually you don’t need to perform these checks, as I implemented them
+within `resource_filtering()`. I also implemented a check for
+disconnected components, to make sure that the resulting community has
+no isolated species and only one actual community.
+
+Bonus: because of these checks, now it is safe to perform a move of the
+limiting similarity procedure:
 
 ``` r
-# nothing for now
+assembly:::.move(sp_resource, adirondack, t = 1)
+#>  [1] "Chydorus bicornutus"        "Diaptomus sicilis"         
+#>  [3] "Lepomis gibbosus"           "Colletheca mutabilis"      
+#>  [5] "Xanthidium sp."             "Diceras sp."               
+#>  [7] "Trichotria tetractis"       "Conochiloides dossuarius"  
+#>  [9] "Kelicottia longispina"      "Aphanothece sp."           
+#> [11] "Ankistrodesmus sp."         "Daphnia pulex"             
+#> [13] "Keratella cochlearis"       "Crucigenia rectangularis"  
+#> [15] "Coregonus clupeaformis"     "Melosira sp."              
+#> [17] "Cryptomonas ovata"          "Chrosomus eos"             
+#> [19] "Eucyclops agilis"           "Ascomorpha ecaudis"        
+#> [21] "Rhinichthys atratulus"      "Trichocerca pusilla"       
+#> [23] "Lecane mira"                "Nitzschia sp."             
+#> [25] "Sida crystallina"           "Rhizosolenia eriensis"     
+#> [27] "Diaphanosoma birgei"        "Dictyosphaerium pulchellum"
+#> [29] "nanoflagellates "           "Conochiloides unicornis"   
+#> [31] "Polyarthra euryptera"       "Merismopedia tenuissima"   
+#> [33] "Cyclops scutifer"           "Lecane sp."                
+#> [35] "Notemigonus crysoleucas"    "fish eggs"                 
+#> [37] "Keratella testudo"          "Lepadella cristata"        
+#> [39] "Keratella taurocephala"     "Trichocerca cylindrica"    
+#> [41] "fish fry"                   "Diaptomus leptopus"        
+#> [43] "Scenedesmus arcuatus"       "Kelicottia bostoniensis"   
+#> [45] "benthic detritus"           "Xanthidium armatum"        
+#> [47] "Gomphonema sp."             "Peridinium wisconsinense"  
+#> [49] "Arthrodesmus incus"         "Mesocyclops edax"
 ```
+
+## Limiting similarity filtering
+
+**To come**
 
 ## Example 1: Trophic levels in random and filtered communities
 
@@ -129,34 +241,27 @@ For 50 local communities I:
 4.  I calculate average and maximum trophic levels within each community
 
 ``` r
-TL_random <- matrix(NA, S, 50)
-TL_resource <- matrix(NA, S, 50)
-for (i in seq_len(50)) {
-  sp <- draw_random_species(S, colnames(adirondack))
-  sp_resource <- resource_filtering(sp, adirondack, keep.n.basal = TRUE)
-  TL_random[, i] <- ATNr::TroLev(adirondack[sp, sp])[, 1]
-  TL_resource[, i] <- ATNr::TroLev(adirondack[sp_resource, sp_resource])[, 1]
-}
-plot(colMeans(TL_random), colMeans(TL_resource),
-     xlim = c(1.1, 2.2), ylim = c(1.1, 2.2),
-     main = "Average trophic level",
-     xlab = "Random communities",
-     ylab = "Resource filtered communities")
-abline(0, 1)
+# TL_random <- matrix(NA, S, 50)
+# TL_resource <- matrix(NA, S, 50)
+# for (i in seq_len(50)) {
+#   sp <- draw_random_species(S, colnames(adirondack))
+#   sp_resource <- resource_filtering(sp, adirondack, keep.n.basal = TRUE)
+#   TL_random[, i] <- ATNr::TroLev(adirondack[sp, sp])[, 1]
+#   TL_resource[, i] <- ATNr::TroLev(adirondack[sp_resource, sp_resource])[, 1]
+# }
+# plot(colMeans(TL_random), colMeans(TL_resource),
+#      xlim = c(1.1, 2.2), ylim = c(1.1, 2.2),
+#      main = "Average trophic level",
+#      xlab = "Random communities",
+#      ylab = "Resource filtered communities")
+# abline(0, 1)
+# plot(apply(TL_random, 2, max), apply(TL_resource, 2, max),
+#      xlim = c(2.2, 9.2), ylim = c(2.2, 9.2),
+#      main = "Maximum trophic level",
+#      xlab = "Random communities",
+#      ylab = "Resource filtered communities")
+# abline(0, 1)
 ```
-
-<img src="man/figures/README-trolev-1.png" width="100%" />
-
-``` r
-plot(apply(TL_random, 2, max), apply(TL_resource, 2, max),
-     xlim = c(2.2, 9.2), ylim = c(2.2, 9.2),
-     main = "Maximum trophic level",
-     xlab = "Random communities",
-     ylab = "Resource filtered communities")
-abline(0, 1)
-```
-
-<img src="man/figures/README-trolev-2.png" width="100%" />
 
 Trophic level tend to be higher in resource-filtered communities
 compared to random communities. This is due to isolated consumers
@@ -168,16 +273,16 @@ when computing the number of connected components:
 show_fw(sp, adirondack)
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-1.png" width="50%" style="display: block; margin: auto;" />
 
 ``` r
 assembly:::.components(sp, adirondack)
-#> [1] 13
+#> [1] 6
 
 show_fw(sp_resource, adirondack)
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-2.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-2.png" width="50%" style="display: block; margin: auto;" />
 
 ``` r
 assembly:::.components(sp_resource, adirondack)
