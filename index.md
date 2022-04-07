@@ -29,7 +29,7 @@ Loading the required libraries and set a random seed:
 
 ``` r
 library(assembly)
-library(igraph)
+#> Loading required package: igraph
 #> 
 #> Attaching package: 'igraph'
 #> The following objects are masked from 'package:stats':
@@ -38,6 +38,7 @@ library(igraph)
 #> The following object is masked from 'package:base':
 #> 
 #>     union
+library(igraph)
 
 set.seed(1234)
 ```
@@ -61,9 +62,9 @@ To draw a random community, use the function `draw_random_species()`:
 
 ``` r
 sp <- draw_random_species(S, colnames(adirondack))
-sum(colSums(adirondack[sp, sp]) == 0) #20 basal speciesshow_fw(sp, adirondack, title = "Random")
+sum(colSums(adirondack[sp, sp]) == 0)
 #> [1] 20
-plot(graph_from_adjacency_matrix(adirondack[sp, sp]), vertex.label = NA)
+show_graph(sp, adirondack)
 ```
 
 <img src="man/figures/README-random-1.png" width="50%" style="display: block; margin: auto;" />
@@ -170,8 +171,7 @@ show_fw(sp_resource, adirondack, title = "Resource filtering")
 <img src="man/figures/README-resource-1.png" width="50%" style="display: block; margin: auto;" />
 
 ``` r
-plot(graph_from_adjacency_matrix(adirondack[sp_resource, sp_resource]),
-     vertex.label = NA)
+show_graph(sp_resource, adirondack)
 ```
 
 <img src="man/figures/README-resource-2.png" width="50%" style="display: block; margin: auto;" />
@@ -229,7 +229,19 @@ assembly:::.move(sp_resource, adirondack, t = 1)
 
 ## Limiting similarity filtering
 
-**To come**
+**To come**: a description of the procedure.
+
+To impose the limiting similariy filtering, call the function
+`similarity_filtering()`. This function has the argument *t*, which is
+the temperature of the Metropolis-Hastings algorithm, and *max.iter*
+(default = 1,000), which is the maximum number of moves allowed.
+
+``` r
+sp_sim <- similarity_filtering(sp_resource, adirondack, t = 1)
+show_graph(sp_sim, adirondack)
+```
+
+<img src="man/figures/README-limiting-1.png" width="50%" style="display: block; margin: auto;" />
 
 ## Example 1: Trophic levels in random and filtered communities
 

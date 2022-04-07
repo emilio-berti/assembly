@@ -7,7 +7,7 @@
 #'
 #' @return A vector with the species names.
 #'
-#' @example
+#' @examples
 #' set.seed(1234)
 #' data(adirondack)
 #' patch <- draw_random_species(50, colnames(adirondack))

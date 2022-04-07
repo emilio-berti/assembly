@@ -20,3 +20,12 @@ A vector with the species names.
 \description{
 Resource filtering assembly
 }
+\examples{
+set.seed(1234)
+data(adirondack)
+patch <- draw_random_species(50, colnames(adirondack))
+show_fw(patch, adirondack)
+patch_filtered <- resource_filtering(patch, adirondack, keep.n.basal = TRUE)
+show_fw(patch_filtered, adirondack)
+setdiff(patch, patch_filtered)
+}

@@ -60,8 +60,8 @@ To draw a random community, use the function `draw_random_species()`:
 
 ```{r random}
 sp <- draw_random_species(S, colnames(adirondack))
-sum(colSums(adirondack[sp, sp]) == 0) #20 basal speciesshow_fw(sp, adirondack, title = "Random")
-plot(graph_from_adjacency_matrix(adirondack[sp, sp]), vertex.label = NA)
+sum(colSums(adirondack[sp, sp]) == 0)
+show_graph(sp, adirondack)
 ```
 
 ## Hidden functions
@@ -123,8 +123,7 @@ Behind the curtain, `resource_filtering()` calls the hidden functions as a way t
 ```{r resource, fig.align='center', fig.width=4, fig.height=4}
 sp_resource <- resource_filtering(sp, adirondack, keep.n.basal = TRUE)
 show_fw(sp_resource, adirondack, title = "Resource filtering")
-plot(graph_from_adjacency_matrix(adirondack[sp_resource, sp_resource]),
-     vertex.label = NA)
+show_graph(sp_resource, adirondack)
 ```
 
 Now the local community is fully connected, i.e. basal species always have a consumer and consumers always have an available resource. It's possible to check this manually calling the hidden functions and working on the adjacency matrix of the local community:
@@ -146,7 +145,14 @@ assembly:::.move(sp_resource, adirondack, t = 1)
 
 ## Limiting similarity filtering
 
-**To come**
+**To come**: a description of the procedure.
+
+To impose the limiting similariy filtering, call the function `similarity_filtering()`. This function has the argument _t_, which is the temperature of the Metropolis-Hastings algorithm, and _max.iter_ (default = 1,000), which is the maximum number of moves allowed.
+
+```{r limiting}
+sp_sim <- similarity_filtering(sp_resource, adirondack, t = 1)
+show_graph(sp_sim, adirondack)
+```
 
 ## Example 1: Trophic levels in random and filtered communities
 

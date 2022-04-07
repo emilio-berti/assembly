@@ -16,10 +16,41 @@ show_fw <- function(sp.names, metaweb, title = NULL) {
   adj <- adj[nrow(adj):1, ]
   adj <- t(adj)
   adj[1:length(sp_basals), ] <- -1
+
+  oldpar <- par(no.readonly = TRUE)
+  par(mar = c(1, 1, 2, 2))
   image(adj, col = c("brown", "goldenrod", "steelblue"),
         frame = FALSE, axes = FALSE)
   title(title)
   grid(nx = S, ny = S, lty = 1, col = adjustcolor("grey20", alpha.f = .1))
+  par(oldpar)
+}
+
+#' @title Plot graph
+#'
+#' @param sp.names adjancency matrix of the food web.
+#' @param metaweb adjacency matrix of the metaweb, to use to order basal species first.
+#' @param title string, title of the plot.
+#'
+#' @return NULL
+show_graph <- function(sp.names, metaweb, title = NULL) {
+  g <- graph_from_adjacency_matrix(metaweb[sp.names, sp.names])
+  # add role
+  V(g)$role <- NA
+  sp_basals <- .basals(metaweb)
+  V(g)$role[V(g)$name %in% sp_basals] <- "basal"
+  sp_consumers <- .consumers(metaweb)
+  V(g)$role[V(g)$name %in% sp_consumers] <- "consumer"
+  # add colors
+  V(g)$col <- ifelse(V(g)$role == "basal", "forestgreen", "goldenrod")
+  # plot
+  oldpar <- par(no.readonly = TRUE)
+  par(mar = c(0, 0, 0, 0))
+  plot(g, vertex.label = NA,
+       vertex.color = V(g)$col,
+       vertex.size = 10,
+       edge.arrow.size = .5)
+  par(oldpar)
 }
 
 #' @title Get food web adjacency matrix
