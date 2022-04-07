@@ -1,7 +1,7 @@
 #' @title Plot food web
 #'
-#' @param adj adjancency matrix of the food web.
-#' @param metweb adjacency matrix of the metaweb, to use to order basal species first.
+#' @param sp.names adjancency matrix of the food web.
+#' @param metaweb adjacency matrix of the metaweb, to use to order basal species first.
 #' @param title string, title of the plot.
 #'
 #' @return NULL

@@ -14,6 +14,9 @@ NULL).}
 
 \item{S}{integer, meta-community species richness (default = NULL).}
 }
+\value{
+A vector with the species names.
+}
 \description{
 Draw random species from a meta-community
 }

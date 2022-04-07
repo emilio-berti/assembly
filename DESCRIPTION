@@ -6,7 +6,7 @@ Author: Emilio Berti
 Maintainer: Emilio Berti <emilio.berti.academia@gmail.com>
 Description: Simulate community assembly using three procedures: random,
     resource filtering, and limiting similarity filtering.
-License: MIT
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
