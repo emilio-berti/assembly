@@ -6,6 +6,15 @@
 #'   originally passed in sp.names.
 #'
 #' @return A vector with the species names.
+#'
+#' @example
+#' set.seed(1234)
+#' data(adirondack)
+#' patch <- draw_random_species(50, colnames(adirondack))
+#' show_fw(patch, adirondack)
+#' patch_filtered <- resource_filtering(patch, adirondack, keep.n.basal = TRUE)
+#' show_fw(patch_filtered, adirondack)
+#' setdiff(patch, patch_filtered)
 resource_filtering <- function(sp.names, metaweb, keep.n.basal = FALSE) {
   # find isolated species
   isolated <- .find_isolated(sp.names, metaweb)
@@ -21,10 +30,9 @@ resource_filtering <- function(sp.names, metaweb, keep.n.basal = FALSE) {
     isolated <- .find_isolated(new_sp, metaweb)
     i <- i + 1
   }
-
   if (length(sp.names) != length(new_sp)) {
-    stop("New species are not the same number as original pool")
+    stop("Number of species changed")
   }
-
+  if (.components(new_sp, metaweb) > 1) stop("Isolated component detected")
   return(new_sp)
 }

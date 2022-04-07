@@ -1,7 +1,0 @@
-"0","sp_resource <- resource_filtering(sp, adirondack, keep.n.basal = TRUE)"
-"0","sum(colSums(adirondack[sp_resource, sp_resource]) == 0) #20 basal species"
-"1","[1]"
-"1"," 19"
-"1","
-"
-"0","show_fw(sp_resource, adirondack, title = ""Resource filtering"")"

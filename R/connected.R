@@ -1,9 +1,11 @@
 #' @title Create random pool of connected species
+#'
 #' @param web adjacency matrix.
 #' @param S number of species.
 #' @param verbose TRUE/FALSE.
 #' @param max_iter maximum number of iterations.
 #' @param plot TRUE/FALSE if to plot the community.
+#'
 #' @examples
 #' a <- connected_pool(web, 13, verbose = FALSE)
 #' g <- graph_from_adjacency_matrix(web[a, a], "undirected")

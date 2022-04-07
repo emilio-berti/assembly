@@ -42,7 +42,7 @@ show_fw <- function(sp.names, metaweb, title = NULL) {
 #'
 #' @return vectors of basal species names.
 .consumers <- function(metaweb) {
-  sp <- colnames(metaweb)[colSums(metaweb) > 1]
+  sp <- colnames(metaweb)[colSums(metaweb) > 0]
   return(sp)
 }
 
@@ -56,6 +56,16 @@ show_fw <- function(sp.names, metaweb, title = NULL) {
   return(sp)
 }
 
+#' @title Top consumer species in the metaweb
+#'
+#' @param metaweb adjacency matrix of the meta food web (metaweb).
+#'
+#' @return vectors of top consumer species names.
+.top <- function(metaweb) {
+  sp <- colnames(metaweb)[colSums(metaweb) > 0 & rowSums(metaweb) == 0]
+  return(sp)
+}
+
 #' @title Find isolated species
 #'
 #' @param sp.names vector of species names.
@@ -65,15 +75,17 @@ show_fw <- function(sp.names, metaweb, title = NULL) {
 .find_isolated <- function(sp.names, metaweb) {
   # get isolated species in the local pool
   basal_sp <- .basals(metaweb)
+  basal_sp <- intersect(basal_sp, sp.names)
   consumer_sp <- .consumers(metaweb)
+  consumer_sp <- intersect(consumer_sp, sp.names)
   adj <- metaweb[sp.names, sp.names]
-  # get species index
-  basal_id <- which(colnames(adj) %in% basal_sp)
-  consumer_id <- which(!colnames(adj) %in% basal_sp)
   # get isolated
-  isolated_basals <- which(rowSums(adj[basal_id, consumer_id]) == 0)
-  isolated_consumers <- which(colSums(adj[basal_id, consumer_id]) == 0)
-  isolated <- union(names(isolated_basals), names(isolated_consumers))
+  isolated_basals <- rowSums(adj[basal_sp, consumer_sp, drop = FALSE]) == 0
+  isolated_basals <- names(isolated_basals[which(isolated_basals)])
+  isolated_consumers <- colSums(adj[union(basal_sp, consumer_sp), #need to consider also present species that are not basals
+                                    consumer_sp, drop = FALSE]) == 0
+  isolated_consumers <- names(isolated_consumers[which(isolated_consumers)])
+  isolated <- union(isolated_basals, isolated_consumers)
   isolated <- intersect(sp.names, isolated)
   return(isolated)
 }
@@ -83,10 +95,12 @@ show_fw <- function(sp.names, metaweb, title = NULL) {
 #' @param sp.names vector of species names.
 #' @param isolated vector of species names that are isolated.
 #' @param metaweb adjacency matrix of the metaweb.
+#' @param keep.n.basal logical, if to keep the constant number of basal species.
 #'
 #' @return a vector or replacement names.
 .find_replacements <- function(sp.names, isolated, metaweb, keep.n.basal = FALSE) {
   if (keep.n.basal) {
+    # search available only in consumers
     n_basals <- length(intersect(isolated, .basals(metaweb)))
     available <- setdiff(.consumers(metaweb), sp.names)
   } else {
@@ -95,9 +109,25 @@ show_fw <- function(sp.names, metaweb, title = NULL) {
   }
   replacements <- draw_random_species(n = length(isolated) - n_basals,
                                       sp.names = available)
-  if (n_basals > 0) {
-    replacements <- c(replacements, sample(setdiff(.basals(metaweb), sp.names),
-                                           n_basals))
+  if (keep.n.basal) {
+    replacements <- c(replacements,
+                      sample(setdiff(.basals(metaweb), sp.names), n_basals))
+    new_basals <- length(intersect(replacements, .basals(metaweb)))
+    if (new_basals != n_basals) stop("Number of basal species changed")
+  } else {
+    new_basals <- length(intersect(replacements, .basals(metaweb)))
+    if (new_basals == 0) stop("No basal species")
   }
   return(replacements)
+}
+
+#' @title Number of connected components
+#'
+#' @details Return the number of connected components in the community
+#'
+#' @param sp.names vector of species names.
+#' @param metaweb adjacency matrix of the metaweb.
+.components <- function(sp.names, metaweb) {
+  g <- graph_from_adjacency_matrix(metaweb[sp.names, sp.names])
+  return (components(g)$no)
 }
