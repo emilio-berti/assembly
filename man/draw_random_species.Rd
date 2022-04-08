@@ -4,15 +4,13 @@
 \alias{draw_random_species}
 \title{Draw random species from a meta-community}
 \usage{
-draw_random_species(n, sp.names = NULL, S = NULL)
+draw_random_species(n, sp.names = NULL)
 }
 \arguments{
 \item{n}{integer, number of species to draw.}
 
 \item{sp.names}{vector, names of the species in the meta-community (default =
 NULL).}
-
-\item{S}{integer, meta-community species richness (default = NULL).}
 }
 \value{
 A vector with the species names.
@@ -24,10 +22,4 @@ Draw random species from a meta-community
 Either one of \code{sp.names} or \code{S} need to be specified. If
   both are specified, \code{sp.names} overrules \code{S}, which will not be
   evaluated.
-}
-\examples{
-S <- 10
-species <- LETTERS[seq_len(S)]
-draw_random_species(3, sp.names = species)
-draw_random_species(3, S = S)
 }

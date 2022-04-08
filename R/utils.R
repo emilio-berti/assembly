@@ -1,3 +1,27 @@
+#' @title Name metaweb species
+#'
+#' @details Gives the metaweb matrix rownames and columnames drawing randomly
+#'   from a sequene of letters.
+#' @param metaweb  adjacency matrix of the metaweb, to use to order basal species first.
+#'
+#' @return the named metaweb.
+name_metaweb <- function(metaweb) {
+  if (!is.null(rownames(metaweb)) | !is.null(rownames(metaweb))) {
+    stop("Names are already present")
+  }
+  if (dim(metaweb)[1] != dim(metaweb)[2]) {
+    stop("metaweb is not symmetric")
+  }
+  l <- dim(metaweb)[1]
+  n <- sapply(seq_len(l), function(x) {
+    paste(sample(letters, 10, replace = TRUE), collapse = "")
+  })
+  if (any(table(n) > 1)) name_metaweb(metaweb)
+  rownames(metaweb) <- n
+  colnames(metaweb) <- n
+  return(metaweb)
+}
+
 #' @title Plot food web
 #'
 #' @param sp.names adjancency matrix of the food web.

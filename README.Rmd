@@ -1,5 +1,6 @@
 ---
 output: github_document
+bibliography: references.bib  
 ---
 
 <!-- badges: start -->
@@ -22,25 +23,37 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Example workflow
+# Getting started
 
-Following food web terminology, I talk here about _resources_ and _consumers_. In the case of plant-pollinator networks, this is analogous as replacing _resource_ with _plant_ and _consumers_ with _pollinator_. In this case, however, some filtering steps may be unnecessary and unwanted. __More about this in a separate section.__
+## Background
 
-I show an example workflow that is composed of the following steps:
+Following food web terminology, I talk here about _resources_ and _consumers_. In the case of plant-pollinator networks, this is analogous as replacing _resource_ with _plant_ and _consumers_ with _pollinator_. In this case, however, some filtering steps may be unnecessary and unwanted. __More about this in a separate section.__ I also talk about metawebs, which are the regional food web networks that emerge considering all interactions that occur in local communities within the region of interest.
 
-1. draw random species from a metaweb
-2. impose resource filtering, i.e. each basal species must be consumed and each consumer must feed on a resource.
-3. impose limiting similarity filtering, i.e. consumers are constantly replaced by others following a probability distribution proportional to their similarity of interactions. 
+The general scope of _assembly_ is to simulate top-down assembly processes. Top-down assembly means that all species are introduced into a local community at once. The opposite, i.e. communities are built by sequential introductions of one species, is called bottom-up assembly. Bottom-up assembly is problematic for community composed of many species, as the number of unique assembly sequences is $S!$, where $S$ is the number of species in the metaweb. For 100 species, for instance, there are $\sim 10^{157}$ unique sequences, making computations (and replications) virtually impossible. Strikingly, @servan2021tractable showed that bottop-up and top-down assembly are equivalent under some specific conditions. 
 
-## Draw random species from a metaweb
+Far from assuming this is the case in _assembly_, I simply want to highlight that _assembly_ only implements top-down assembly and that none of the procedures in _assembly_ can be considered steps in an ecological sequence. Whenever I talk about _steps_, _moves_, and _sequences_ in _assembly_, I always refer to _procedures steps_, _procedures moves_, and _procedures sequences_. Always keep that in mind and don't be fooled by the terminology; there is no bottom-up assembly in _assembly_.
 
-Loading the required libraries and set a random seed:
+At this point, if you're like me, you will ask _why not bottom-up assembly?_ The simple answer is: because it is computational unfeasible for large communities. To make it feasible, it is tempting to restrict the possible sequences to a (very) narrow space, only to 1,000,000 sequences ($10^{-152}$ of the total fraction of possible sequences for 100 species; much _much_ smaller than considering only a grain of sand simulating the whole Earth). As this seems quite dangerous, potentially leading to biased conclusions, I completed neglected bottom-up assembly processes.
+
+## General workflow of _assembly_
+
+In general, _assembly_ implements this pipeline:
+
+  1. Draw random species from a metaweb.
+  2. Impose resource filtering, i.e. each basal species must be consumed and each consumer must feed on a resource.
+  3. Impose limiting similarity filtering, i.e. consumers are replaced by others, depending on a probability distribution proportional to their similarity of interactions.
+  
+These steps are not necessarily sequential, i.e. limiting similarity can be imposed independently from the resource filtering, but this is programmatically harder. Because ecological communities are likely filtered by resource availability before interaction competition, I wrote _assembly_ in a way that is straightforward to pass the output of the resource filtering procedure to the limiting similarity one. It is, however, possible to omit/invert procedures by performing extra-checks on input/output data and implementing few pre-procedure steps. I will show how to implement some of them at the end.
+
+# Draw random species from a metaweb
+
+Loading the required libraries and set a random seed
 
 ```{r init}
 library(assembly)
 library(igraph)
 
-set.seed(1234)
+set.seed(123)
 ```
 
 Load the dataset _adirondack_ that comes with _assembly_:
@@ -51,16 +64,27 @@ data(adirondack)
 
 _adirondack_ is the Adirondack Lakes metaweb as obtained from the GATEWAy database.
 
-Define the number of species for the local community:
+`draw_random_species(n, sp.names)` draws random species from a metaweb and requires as input the number of species to draw (*n*) and the species names (*sp.names*). If the metaweb does not have species names, you can assign random ones with `name_metaweb(metaweb)`:
+
+```{r name}
+colnames(name_metaweb(matrix(as.numeric(runif(100) > .5), 10, 10)))
+```
+If names are already present, this will throw an error:
+
+```{r name_error}
+tryCatch(name_metaweb(adirondack),
+         error = function(e) print(e))
+```
+When the metaweb has names, define the number of species for the local community:
+
 ```{r S}
 S <- 50 #species richness
 ```
 
-To draw a random community, use the function `draw_random_species()`:
+And draw a random community, use the function `draw_random_species()`:
 
 ```{r random}
 sp <- draw_random_species(S, colnames(adirondack))
-sum(colSums(adirondack[sp, sp]) == 0)
 show_graph(sp, adirondack)
 ```
 
@@ -99,7 +123,7 @@ If _keep.n.basal_ is TRUE (default = FALSE), then the original number of basal s
 
 `assembly:::.move()` performs a move in the limiting similarity procedure (more about this later):
 
-```{r move}
+```{r move_fail}
 tryCatch(assembly:::.move(sp, adirondack, t = 1),
          error = function(e) print(e))
 ```
@@ -116,13 +140,12 @@ Usually, a proper food web has only one component, i.e. all species are connecte
 
 # Resouce filtering
 
-To impose the resource filtering, I call the function `resource_filtering()`. This takes as input the species names, the metaweb, and an optional argument _keep.n.basal_ to specify weather the original number of basal species should be kept constant (default = `FALSE`). **NOTE this may not be implemented correctly**
+To impose the resource filtering, call the function `resource_filtering()`. This takes as input the species names (*sp.names*), the metaweb (*metaweb*), and an optional argument _keep.n.basal_ to specify weather the original number of basal species should be kept constant (default = `FALSE`). **NOTE this may not be implemented correctly**
 
 Behind the curtain, `resource_filtering()` calls the hidden functions as a way to compress code and make it consistent. That's why you shouldn't bother too much about hidden functions: they're there because they're useful in the development of the package, rather than for your usage. If they're useful for you and you understand how they work, use them.
 
 ```{r resource}
 sp_resource <- resource_filtering(sp, adirondack, keep.n.basal = TRUE)
-show_fw(sp_resource, adirondack, title = "Resource filtering")
 show_graph(sp_resource, adirondack)
 ```
 
@@ -139,7 +162,7 @@ Usually you don't need to perform these checks, as I implemented them within  `r
 
 Bonus: because of these checks, now it is safe to perform a move of the limiting similarity procedure:
 
-```{r fail}
+```{r move}
 assembly:::.move(sp_resource, adirondack, t = 1)
 ```
 
@@ -155,10 +178,10 @@ Each move can then be accepted of discarded based on a probabilistic acceptance 
 
 The limiting similarity procedure is simply a series of moves (accepted or not). The starting community for the limiting similarity procedure is usually a community that has undergone already a resource filtering, imposing thus that trophic competition comes after resource availability. However, it is possible to skip the resource filtering step; the only requirement of the starting community for the limiting similarity filtering is that it does not have isolated species and has only one connected components.
 
-To impose the limiting similariy filtering, call the function `similarity_filtering()`. This function has the argument _t_, which is the temperature of the Metropolis-Hastings algorithm, and _max.iter_ (default = 1,000), which is the maximum number of moves allowed.
+To impose the limiting similariy filtering, call the function `similarity_filtering()`. This function requires the species names as input (*sp.names*), the metaweb (*metaweb*), the argument _t_ (default = 0), which is the temperature of the Metropolis-Hastings algorithm, and _max.iter_ (default = 1,000), which is the maximum number of moves allowed.
 
 ```{r limiting}
-sp_sim <- similarity_filtering(sp_resource, adirondack, t = 1)
+sp_sim <- similarity_filtering(sp_resource, adirondack, t = 1, max.iter = 10)
 show_graph(sp_sim, adirondack)
 ```
 
@@ -210,46 +233,4 @@ The reason to include this algorithm is to avoid a purely deterministic procedur
 
 ```{r tweak_t}
 table(sapply(seq_len(1000), \(x) metropolis.hastings(1, 1e3, t = 1e9)))
-```
-
-## Example 1: Trophic levels in random and filtered communities
-
-For 50 local communities I:
-
-1. draw random species
-2. apply the resource filtering procedure
-3. calculate the trophic level of the species in the local communities
-4. I calculate average and maximum trophic levels within each community
-
-```{r trolev}
-# TL_random <- matrix(NA, S, 50)
-# TL_resource <- matrix(NA, S, 50)
-# for (i in seq_len(50)) {
-#   sp <- draw_random_species(S, colnames(adirondack))
-#   sp_resource <- resource_filtering(sp, adirondack, keep.n.basal = TRUE)
-#   TL_random[, i] <- ATNr::TroLev(adirondack[sp, sp])[, 1]
-#   TL_resource[, i] <- ATNr::TroLev(adirondack[sp_resource, sp_resource])[, 1]
-# }
-# plot(colMeans(TL_random), colMeans(TL_resource),
-#      xlim = c(1.1, 2.2), ylim = c(1.1, 2.2),
-#      main = "Average trophic level",
-#      xlab = "Random communities",
-#      ylab = "Resource filtered communities")
-# abline(0, 1)
-# plot(apply(TL_random, 2, max), apply(TL_resource, 2, max),
-#      xlim = c(2.2, 9.2), ylim = c(2.2, 9.2),
-#      main = "Maximum trophic level",
-#      xlab = "Random communities",
-#      ylab = "Resource filtered communities")
-# abline(0, 1)
-```
-
-Trophic level tend to be higher in resource-filtered communities compared to random communities. This is due to isolated consumers (trophic level = 1) in the random communities and that were replaced by connected consumers when imposing resource filtering. It's also evident when computing the number of connected components:
-
-```{r}
-show_fw(sp, adirondack)
-assembly:::.components(sp, adirondack)
-
-show_fw(sp_resource, adirondack)
-assembly:::.components(sp_resource, adirondack)
 ```

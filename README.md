@@ -6,26 +6,79 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Example workflow
+# Getting started
+
+## Background
 
 Following food web terminology, I talk here about *resources* and
 *consumers*. In the case of plant-pollinator networks, this is analogous
 as replacing *resource* with *plant* and *consumers* with *pollinator*.
 In this case, however, some filtering steps may be unnecessary and
-unwanted. **More about this in a separate section.**
+unwanted. **More about this in a separate section.** I also talk about
+metawebs, which are the regional food web networks that emerge
+considering all interactions that occur in local communities within the
+region of interest.
 
-I show an example workflow that is composed of the following steps:
+The general scope of *assembly* is to simulate top-down assembly
+processes. Top-down assembly means that all species are introduced into
+a local community at once. The opposite, i.e. communities are built by
+sequential introductions of one species, is called bottom-up assembly.
+Bottom-up assembly is problematic for community composed of many
+species, as the number of unique assembly sequences is
+![S!](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;S%21 "S!"),
+where
+![S](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;S "S")
+is the number of species in the metaweb. For 100 species, for instance,
+there are
+![\\sim 10^{157}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Csim%2010%5E%7B157%7D "\sim 10^{157}")
+unique sequences, making computations (and replications) virtually
+impossible. Strikingly, Serván and Allesina (2021) showed that bottop-up
+and top-down assembly are equivalent under some specific conditions.
 
-1.  draw random species from a metaweb
-2.  impose resource filtering, i.e. each basal species must be consumed
+Far from assuming this is the case in *assembly*, I simply want to
+highlight that *assembly* only implements top-down assembly and that
+none of the procedures in *assembly* can be considered steps in an
+ecological sequence. Whenever I talk about *steps*, *moves*, and
+*sequences* in *assembly*, I always refer to *procedures steps*,
+*procedures moves*, and *procedures sequences*. Always keep that in mind
+and don’t be fooled by the terminology; there is no bottom-up assembly
+in *assembly*.
+
+At this point, if you’re like me, you will ask *why not bottom-up
+assembly?* The simple answer is: because it is computational unfeasible
+for large communities. To make it feasible, it is tempting to restrict
+the possible sequences to a (very) narrow space, only to 1,000,000
+sequences
+(![10^{-152}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;10%5E%7B-152%7D "10^{-152}")
+of the total fraction of possible sequences for 100 species; much *much*
+smaller than considering only a grain of sand simulating the whole
+Earth). As this seems quite dangerous, potentially leading to biased
+conclusions, I completed neglected bottom-up assembly processes.
+
+## General workflow of *assembly*
+
+In general, *assembly* implements this pipeline:
+
+1.  Draw random species from a metaweb.
+2.  Impose resource filtering, i.e. each basal species must be consumed
     and each consumer must feed on a resource.
-3.  impose limiting similarity filtering, i.e. consumers are constantly
-    replaced by others following a probability distribution proportional
-    to their similarity of interactions.
+3.  Impose limiting similarity filtering, i.e. consumers are replaced by
+    others, depending on a probability distribution proportional to
+    their similarity of interactions.
 
-## Draw random species from a metaweb
+These steps are not necessarily sequential, i.e. limiting similarity can
+be imposed independently from the resource filtering, but this is
+programmatically harder. Because ecological communities are likely
+filtered by resource availability before interaction competition, I
+wrote *assembly* in a way that is straightforward to pass the output of
+the resource filtering procedure to the limiting similarity one. It is,
+however, possible to omit/invert procedures by performing extra-checks
+on input/output data and implementing few pre-procedure steps. I will
+show how to implement some of them at the end.
 
-Loading the required libraries and set a random seed:
+# Draw random species from a metaweb
+
+Loading the required libraries and set a random seed
 
 ``` r
 library(assembly)
@@ -40,7 +93,7 @@ library(assembly)
 #>     union
 library(igraph)
 
-set.seed(1234)
+set.seed(123)
 ```
 
 Load the dataset *adirondack* that comes with *assembly*:
@@ -52,18 +105,36 @@ data(adirondack)
 *adirondack* is the Adirondack Lakes metaweb as obtained from the
 GATEWAy database.
 
-Define the number of species for the local community:
+`draw_random_species(n, sp.names)` draws random species from a metaweb
+and requires as input the number of species to draw (*n*) and the
+species names (*sp.names*). If the metaweb does not have species names,
+you can assign random ones with `name_metaweb(metaweb)`:
+
+``` r
+colnames(name_metaweb(matrix(as.numeric(runif(100) > .5), 10, 10)))
+#>  [1] "ytvynywchp" "lyncngcwvz" "ouehsjrjlb" "jvltnqnvch" "nsoxqwkgow"
+#>  [6] "zfngjefpxu" "wkdlnsygvz" "igbpmsxtog" "dahtypxvkp" "thcdtlvqjt"
+```
+
+If names are already present, this will throw an error:
+
+``` r
+tryCatch(name_metaweb(adirondack),
+         error = function(e) print(e))
+#> <simpleError in name_metaweb(adirondack): Names are already present>
+```
+
+When the metaweb has names, define the number of species for the local
+community:
 
 ``` r
 S <- 50 #species richness
 ```
 
-To draw a random community, use the function `draw_random_species()`:
+And draw a random community, use the function `draw_random_species()`:
 
 ``` r
 sp <- draw_random_species(S, colnames(adirondack))
-sum(colSums(adirondack[sp, sp]) == 0)
-#> [1] 20
 show_graph(sp, adirondack)
 ```
 
@@ -101,8 +172,10 @@ the local community:
 
 ``` r
 assembly:::.find_isolated(sp, adirondack)
-#> [1] "Nephrocytium sp."      "Alona rectangula"      "Scenedesmus dimorphus"
-#> [4] "Coelosphaerium sp."    "Scenedesmus serratus"  "Kirchneriella lunaris"
+#> [1] "Halotheca sp."             "Conochiloides hippocrepis"
+#> [3] "Keratella serrulata"       "Ceriodaphnia quadrangula" 
+#> [5] "Polyarthra euryptera"      "Lepadella triptera"       
+#> [7] "Prosopium cylindraceum"    "Catostomus catostomus"
 ```
 
 `assembly:::.find_replacements()` find suitable replacement for the
@@ -113,8 +186,10 @@ assembly:::.find_replacements(sp,
                               assembly:::.find_isolated(sp, adirondack),
                               adirondack,
                               keep.n.basal = TRUE)
-#> [1] "Osmerus mordax"     "Cosmarium sp."      "Staurastrum sp."   
-#> [4] "Desmidium sp."      "Anabaena sp."       "Xanthidium armatum"
+#> [1] "Ploesoma hudsoni"            "fish fry"                   
+#> [3] "Salmo rutta"                 "Conochiloides unicornis"    
+#> [5] "Keratella crassa"            "Coregonus artedii"          
+#> [7] "Salvelinus fontinalis small" "Chroococcus sp."
 ```
 
 If *keep.n.basal* is TRUE (default = FALSE), then the original number of
@@ -140,7 +215,7 @@ components in the graph of the local community:
 
 ``` r
 assembly:::.components(sp, adirondack)
-#> [1] 6
+#> [1] 5
 ```
 
 Usually, a proper food web has only one component, i.e. all species are
@@ -151,11 +226,12 @@ is composed of only one isolated species.
 
 # Resouce filtering
 
-To impose the resource filtering, I call the function
-`resource_filtering()`. This takes as input the species names, the
-metaweb, and an optional argument *keep.n.basal* to specify weather the
-original number of basal species should be kept constant (default =
-`FALSE`). **NOTE this may not be implemented correctly**
+To impose the resource filtering, call the function
+`resource_filtering()`. This takes as input the species names
+(*sp.names*), the metaweb (*metaweb*), and an optional argument
+*keep.n.basal* to specify weather the original number of basal species
+should be kept constant (default = `FALSE`). **NOTE this may not be
+implemented correctly**
 
 Behind the curtain, `resource_filtering()` calls the hidden functions as
 a way to compress code and make it consistent. That’s why you shouldn’t
@@ -165,16 +241,10 @@ they’re useful for you and you understand how they work, use them.
 
 ``` r
 sp_resource <- resource_filtering(sp, adirondack, keep.n.basal = TRUE)
-show_fw(sp_resource, adirondack, title = "Resource filtering")
-```
-
-<img src="man/figures/README-resource-1.png" width="50%" style="display: block; margin: auto;" />
-
-``` r
 show_graph(sp_resource, adirondack)
 ```
 
-<img src="man/figures/README-resource-2.png" width="50%" style="display: block; margin: auto;" />
+<img src="man/figures/README-resource-1.png" width="50%" style="display: block; margin: auto;" />
 
 Now the local community is fully connected, i.e. basal species always
 have a consumer and consumers always have an available resource. It’s
@@ -200,31 +270,31 @@ limiting similarity procedure:
 
 ``` r
 assembly:::.move(sp_resource, adirondack, t = 1)
-#>  [1] "Chydorus bicornutus"        "Diaptomus sicilis"         
-#>  [3] "Lepomis gibbosus"           "Colletheca mutabilis"      
-#>  [5] "Xanthidium sp."             "Diceras sp."               
-#>  [7] "Trichotria tetractis"       "Conochiloides dossuarius"  
-#>  [9] "Kelicottia longispina"      "Aphanothece sp."           
-#> [11] "Ankistrodesmus sp."         "Daphnia pulex"             
-#> [13] "Keratella cochlearis"       "Crucigenia rectangularis"  
-#> [15] "Coregonus clupeaformis"     "Melosira sp."              
-#> [17] "Cryptomonas ovata"          "Chrosomus eos"             
-#> [19] "Eucyclops agilis"           "Ascomorpha ecaudis"        
-#> [21] "Rhinichthys atratulus"      "Trichocerca pusilla"       
-#> [23] "Lecane mira"                "Nitzschia sp."             
-#> [25] "Sida crystallina"           "Rhizosolenia eriensis"     
-#> [27] "Diaphanosoma birgei"        "Dictyosphaerium pulchellum"
-#> [29] "nanoflagellates "           "Conochiloides unicornis"   
-#> [31] "Polyarthra euryptera"       "Merismopedia tenuissima"   
-#> [33] "Cyclops scutifer"           "Lecane sp."                
-#> [35] "Notemigonus crysoleucas"    "fish eggs"                 
-#> [37] "Keratella testudo"          "Lepadella cristata"        
-#> [39] "Keratella taurocephala"     "Trichocerca cylindrica"    
-#> [41] "fish fry"                   "Diaptomus leptopus"        
-#> [43] "Scenedesmus arcuatus"       "Kelicottia bostoniensis"   
-#> [45] "benthic detritus"           "Xanthidium armatum"        
-#> [47] "Gomphonema sp."             "Peridinium wisconsinense"  
-#> [49] "Arthrodesmus incus"         "Mesocyclops edax"
+#>  [1] "Cosmarium sp."               "Alona costata"              
+#>  [3] "Anabaena flos-aquae"         "Fragilaria sp."             
+#>  [5] "Holopedium gibberum"         "Quadrigula closterioides"   
+#>  [7] "Crucigenia quadrata"         "Chlamydomonas sp."          
+#>  [9] "Chrysosphaerella longispina" "Euchlanis sp."              
+#> [11] "Arthrodesmus octocornis"     "Euglena acus"               
+#> [13] "Cyclops scutifer"            "Polyarthra major"           
+#> [15] "Staurastrum megacanthum"     "Scenedesmus sp."            
+#> [17] "Crucigenia crucifera"        "Bosmina longirostris"       
+#> [19] "Ascomorpha ecaudis"          "Sida crystallina"           
+#> [21] "Pediastrum tetras"           "Rhinichthys atratulus"      
+#> [23] "Schroederia setigera"        "Dinobryon sp."              
+#> [25] "Cocconeia sp."               "Euastrum sp."               
+#> [27] "Fragilaria crotonensis"      "Sphaerocystis schroeteri"   
+#> [29] "Peridinium wisconsinense"    "Oncorhynchus mykiss"        
+#> [31] "Daphnia galeata"             "Micropterus salmoides"      
+#> [33] "Peridinium limbatum"         "Microsystis sp."            
+#> [35] "Pimephales promelas"         "Tropocyclops prasinus"      
+#> [37] "Peridinium inconspicuum"     "Carteria sp."               
+#> [39] "Tabellaria flocculosa"       "Aphanothece sp."            
+#> [41] "Diatoma sp."                 "Micrasterias sp."           
+#> [43] "Diaphanosoma birgei"         "Salmo rutta"                
+#> [45] "Kelicottia bostoniensis"     "fish fry"                   
+#> [47] "Ankistrodesmus spiralis"     "Diaptomus minutus"          
+#> [49] "Colletheca mutabilis"        "Lepomis gibbosus"
 ```
 
 # Limiting similarity filtering
@@ -260,12 +330,14 @@ similarity filtering is that it does not have isolated species and has
 only one connected components.
 
 To impose the limiting similariy filtering, call the function
-`similarity_filtering()`. This function has the argument *t*, which is
-the temperature of the Metropolis-Hastings algorithm, and *max.iter*
-(default = 1,000), which is the maximum number of moves allowed.
+`similarity_filtering()`. This function requires the species names as
+input (*sp.names*), the metaweb (*metaweb*), the argument *t* (default =
+0), which is the temperature of the Metropolis-Hastings algorithm, and
+*max.iter* (default = 1,000), which is the maximum number of moves
+allowed.
 
 ``` r
-sp_sim <- similarity_filtering(sp_resource, adirondack, t = 1)
+sp_sim <- similarity_filtering(sp_resource, adirondack, t = 1, max.iter = 10)
 show_graph(sp_sim, adirondack)
 ```
 
@@ -341,60 +413,13 @@ table(sapply(seq_len(1000), \(x) metropolis.hastings(1, 1e3, t = 1e9)))
 #> 1000
 ```
 
-## Example 1: Trophic levels in random and filtered communities
+<div id="refs" class="references csl-bib-body hanging-indent">
 
-For 50 local communities I:
+<div id="ref-servan2021tractable" class="csl-entry">
 
-1.  draw random species
-2.  apply the resource filtering procedure
-3.  calculate the trophic level of the species in the local communities
-4.  I calculate average and maximum trophic levels within each community
+Serván, Carlos A, and Stefano Allesina. 2021. “Tractable Models of
+Ecological Assembly.” *Ecology Letters* 24 (5): 1029–37.
 
-``` r
-# TL_random <- matrix(NA, S, 50)
-# TL_resource <- matrix(NA, S, 50)
-# for (i in seq_len(50)) {
-#   sp <- draw_random_species(S, colnames(adirondack))
-#   sp_resource <- resource_filtering(sp, adirondack, keep.n.basal = TRUE)
-#   TL_random[, i] <- ATNr::TroLev(adirondack[sp, sp])[, 1]
-#   TL_resource[, i] <- ATNr::TroLev(adirondack[sp_resource, sp_resource])[, 1]
-# }
-# plot(colMeans(TL_random), colMeans(TL_resource),
-#      xlim = c(1.1, 2.2), ylim = c(1.1, 2.2),
-#      main = "Average trophic level",
-#      xlab = "Random communities",
-#      ylab = "Resource filtered communities")
-# abline(0, 1)
-# plot(apply(TL_random, 2, max), apply(TL_resource, 2, max),
-#      xlim = c(2.2, 9.2), ylim = c(2.2, 9.2),
-#      main = "Maximum trophic level",
-#      xlab = "Random communities",
-#      ylab = "Resource filtered communities")
-# abline(0, 1)
-```
+</div>
 
-Trophic level tend to be higher in resource-filtered communities
-compared to random communities. This is due to isolated consumers
-(trophic level = 1) in the random communities and that were replaced by
-connected consumers when imposing resource filtering. It’s also evident
-when computing the number of connected components:
-
-``` r
-show_fw(sp, adirondack)
-```
-
-<img src="man/figures/README-unnamed-chunk-2-1.png" width="50%" style="display: block; margin: auto;" />
-
-``` r
-assembly:::.components(sp, adirondack)
-#> [1] 6
-
-show_fw(sp_resource, adirondack)
-```
-
-<img src="man/figures/README-unnamed-chunk-2-2.png" width="50%" style="display: block; margin: auto;" />
-
-``` r
-assembly:::.components(sp_resource, adirondack)
-#> [1] 1
-```
+</div>

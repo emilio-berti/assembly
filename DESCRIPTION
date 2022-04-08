@@ -1,7 +1,7 @@
 Package: assembly
 Type: Package
 Title: Simulate community assembly
-Version: 0.1.0
+Version: 0.1.1
 Author: Emilio Berti
 Maintainer: Emilio Berti <emilio.berti.academia@gmail.com>
 Description: Simulate community assembly using three procedures: random,
