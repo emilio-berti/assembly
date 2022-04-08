@@ -149,7 +149,7 @@ web is actually made of several disconnected communities. In the case
 above, it also means that at least one of this disconnected communities
 is composed of only one isolated species.
 
-## Resouce filtering
+# Resouce filtering
 
 To impose the resource filtering, I call the function
 `resource_filtering()`. This takes as input the species names, the
@@ -227,9 +227,37 @@ assembly:::.move(sp_resource, adirondack, t = 1)
 #> [49] "Arthrodesmus incus"         "Mesocyclops edax"
 ```
 
-## Limiting similarity filtering
+# Limiting similarity filtering
 
-**To come**: a description of the procedure.
+The limiting similarity filtering is composed of a series of individuals
+moves:
+
+1.  A metric
+    (![J](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;J "J"))
+    representing the similarity of interaction is calculated for each
+    species in the community.
+2.  One species is removed with probability proportional to their
+    ![J](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;J "J").
+3.  The species removed is replaced by another species selected at
+    random from the metaweb.
+
+Each move can then be accepted of discarded based on a probabilistic
+acceptance criterion, the Metropolis-Hasting algorithm (see below for
+details). If the move is accepted, the new community will differ from
+the starting one only in the removed/replaced species. If the move is
+discarded, the new community is identical to the starting one. Each move
+takes as input the community of the previous move (or the initial
+community for the first move) and returns as output the new community
+(or the original one).
+
+The limiting similarity procedure is simply a series of moves (accepted
+or not). The starting community for the limiting similarity procedure is
+usually a community that has undergone already a resource filtering,
+imposing thus that trophic competition comes after resource
+availability. However, it is possible to skip the resource filtering
+step; the only requirement of the starting community for the limiting
+similarity filtering is that it does not have isolated species and has
+only one connected components.
 
 To impose the limiting similariy filtering, call the function
 `similarity_filtering()`. This function has the argument *t*, which is
@@ -242,6 +270,76 @@ show_graph(sp_sim, adirondack)
 ```
 
 <img src="man/figures/README-limiting-1.png" width="50%" style="display: block; margin: auto;" />
+
+## Metropolis-Hasting algorithm
+
+To accept a move, it must pass a Metropolis-Hasting algorithm. If the
+similarity of the new community is lower than the similarity of the old
+one, the move is always accepted. When the new similarity is higher than
+the old similarity, the move is accepted if:
+
+![
+e^{\\left( 1 - \\frac{similarity\_{new}}{similarity\_{old}} \\right) \\frac{1}{t}} &gt; \\mathcal{U}(0, 1)
+](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%0Ae%5E%7B%5Cleft%28%201%20-%20%5Cfrac%7Bsimilarity_%7Bnew%7D%7D%7Bsimilarity_%7Bold%7D%7D%20%5Cright%29%20%5Cfrac%7B1%7D%7Bt%7D%7D%20%3E%20%5Cmathcal%7BU%7D%280%2C%201%29%0A "
+e^{\left( 1 - \frac{similarity_{new}}{similarity_{old}} \right) \frac{1}{t}} > \mathcal{U}(0, 1)
+")
+
+This means that, even when the new similarity is higher than the old one
+and the new community has species with increased similarity of
+interaction, it can still be accepted as a valid move based on a
+probability density function. The probability of acceptance depends on
+how much the new similarity is higher than the old one and by the
+temperature parameter *t*. For increasing *t*, it is more likely to
+accept a non-favorable move:
+
+``` r
+temp <- 10 ^ seq(-2, 1, by = .1)
+ratio <- 10 ^ seq(-1, 2, by = .1)
+
+move <- rep(NA, length(temp) * length(ratio))
+i <- 1
+for (t in temp){
+  for (x in ratio) {
+    move[i] <- metropolis.hastings(1, x, t)
+    i <- i + 1
+  }
+}
+
+d <- data.frame(Temp = rep(temp, each = length(ratio)),
+                Ratio = rep(ratio, length(temp)),
+                Move = as.numeric(move))
+cols <- colorRampPalette(c("steelblue", "tomato"))
+cols <- cols(length(unique(d$Temp)))
+pal <- adjustcolor(cols, alpha.f = .2)
+pal <- pal[sapply(d$Temp, \(x) which(unique(d$Temp) == x))]
+plot(log10(d$Ratio), jitter(d$Move, factor = .2), 
+     xlab = "Similiarity ratio (new / old)",
+     ylab = "Accepted move",
+     col = pal, pch = 20, frame = FALSE)
+for (t in unique(d$Temp)) {
+  x <- log10(d$Ratio[d$Temp == t])
+  y <- d$Move[d$Temp == t]
+  fit <- loess(y ~ x)
+  lines(fit$x, fit$fitted, col = cols[which(unique(d$Temp) == t)])
+}
+legend(-1, .7, legend = seq(-2, 1, by = .5), 
+       fill = colorRampPalette(c("steelblue", "tomato"))(7),
+       title = "log10(t)")
+```
+
+<img src="man/figures/README-metro-1.png" width="80%" style="display: block; margin: auto;" />
+
+The reason to include this algorithm is to avoid a purely deterministic
+procedure and include some stochasticity in the process. However, if
+this is unwanted, it can be removed (and the process made purely
+deterministic), by specifying a very high temperature parameter *t*:
+
+``` r
+table(sapply(seq_len(1000), \(x) metropolis.hastings(1, 1e3, t = 1e9)))
+#> 
+#> TRUE 
+#> 1000
+```
 
 ## Example 1: Trophic levels in random and filtered communities
 
