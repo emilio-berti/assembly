@@ -223,7 +223,7 @@ web is actually made of several disconnected communities. In the case
 above, it also means that at least one of this disconnected communities
 is composed of only one isolated species.
 
-# Resouce filtering
+# Resource filtering
 
 To impose the resource filtering, call the function
 `resource_filtering()`. This takes as input the species names
@@ -410,6 +410,157 @@ table(sapply(seq_len(1000), \(x) metropolis.hastings(1, 1e3, t = 1e9)))
 #> 
 #> TRUE 
 #> 1000
+```
+
+# Integrating food web dynamics
+
+Until now, we focused on assembly processes and how this influence the
+topology of the network. It is possible to integrate the assembly with
+food web dynamics, e.g. comparing dynamics between filtering processes.
+I collaborated to the *ATNr* package to solve food web dynamical
+systems.
+
+Create a synthetic metaweb with virtual species:
+
+``` r
+library(ATNr)
+#> 
+#> Attaching package: 'ATNr'
+#> The following object is masked from 'package:igraph':
+#> 
+#>     is_connected
+
+S <- 200
+
+traits <- data.frame(
+  species = sapply(seq_len(S), \(x){
+    paste(sample(letters, 10, replace = TRUE), collapse = "")
+  }),
+  masses = 10 ^ runif(S, 0, 2), #log-uniform
+  biomasses = runif(S, 2, 5),
+  role = sapply(seq_len(S), \(x) ifelse(runif(1) > .7, "basal", "consumer"))
+)
+
+traits <- traits[order(traits$masses), ]
+
+metaweb <- create_Lmatrix(traits$masses,
+                          sum(traits$role == "basal"),
+                          Ropt = 10,
+                          th = .1)
+sum(colSums(metaweb) == 0) == sum(traits$role == "basal")
+#> [1] TRUE
+metaweb[metaweb > 0] <- 1
+colnames(metaweb) <- traits$species
+rownames(metaweb) <- traits$species
+show_fw(colnames(metaweb), metaweb)
+```
+
+<img src="man/figures/README-traits-1.png" width="50%" style="display: block; margin: auto;" />
+
+Draw random species for a local community of 30 species and impose
+sequentially the resource filtering and the limiting similarity
+filtering:
+
+``` r
+sp <- draw_random_species(30, colnames(metaweb))
+length(setdiff(sp, assembly:::.basals(metaweb)))
+#> [1] 20
+sp_resource <- resource_filtering(sp, metaweb, keep.n.basal = TRUE)
+length(setdiff(sp_resource, assembly:::.basals(metaweb)))
+#> [1] 20
+sp_limiting <- similarity_filtering(sp_resource, metaweb, t = 1e6, max.iter = 1e2)
+length(setdiff(sp_limiting, assembly:::.basals(metaweb)))
+#> [1] 20
+
+show_graph(sp, metaweb, title = "Random")
+```
+
+<img src="man/figures/README-simulations-1.png" width="50%" style="display: block; margin: auto;" />
+
+``` r
+show_graph(sp_resource, metaweb, title = "Resource filtering")
+```
+
+<img src="man/figures/README-simulations-2.png" width="50%" style="display: block; margin: auto;" />
+
+``` r
+show_graph(sp_limiting, metaweb, title = "Limiting similarity")
+```
+
+<img src="man/figures/README-simulations-3.png" width="50%" style="display: block; margin: auto;" />
+
+Create and initialize the ATNr models:
+
+``` r
+nb_b <- length(setdiff(sp, assembly:::.basals(metaweb)))
+nb_s <- 30
+
+dyn_random <- create_model_Unscaled(nb_s, nb_b,
+                                    traits$masses[traits$species %in% sp],
+                                    metaweb[sp, sp])
+dyn_res <- create_model_Unscaled(nb_s, nb_b,
+                                 traits$masses[traits$species %in% sp_resource],
+                                 metaweb[sp_resource, sp_resource])
+dyn_lim <- create_model_Unscaled(nb_s, nb_b,
+                                 traits$masses[traits$species %in% sp_limiting],
+                                 metaweb[sp_limiting, sp_limiting])
+# default parameters
+initialise_default_Unscaled(dyn_random)
+#> C++ object <0x564e71ab93e0> of class 'Unscaled' <0x564e70e556b0>
+initialise_default_Unscaled(dyn_res)
+#> C++ object <0x564e6eb6e350> of class 'Unscaled' <0x564e70e556b0>
+initialise_default_Unscaled(dyn_lim)
+#> C++ object <0x564e728e9610> of class 'Unscaled' <0x564e70e556b0>
+# initialize C++ fields
+dyn_random$initialisations()
+dyn_res$initialisations()
+dyn_lim$initialisations()
+```
+
+And call the solver to obtain the dynamics:
+
+``` r
+times <- seq(1, 1e9, 1e7)
+
+sol_random <- lsoda_wrapper(times, traits$biomasses[traits$species %in% sp],
+                            dyn_random)
+sol_res <- lsoda_wrapper(times, traits$biomasses[traits$species %in% sp_resource],
+                         dyn_res)
+sol_lim <- lsoda_wrapper(times, traits$biomasses[traits$species %in% sp_limiting],
+                         dyn_lim)
+
+plot_odeweb(sol_random, nb_s)
+plot_odeweb(sol_res, nb_s)
+```
+
+<img src="man/figures/README-solver-1.png" width="50%" style="display: block; margin: auto;" />
+
+``` r
+plot_odeweb(sol_lim, nb_s)
+```
+
+<img src="man/figures/README-solver-2.png" width="50%" style="display: block; margin: auto;" />
+
+The number of extinct species can be extracted by:
+
+``` r
+sum(sol_random[length(times), -1] < 1e-6)
+#> [1] 1
+sum(sol_res[length(times), -1] < 1e-6)
+#> [1] 1
+sum(sol_lim[length(times), -1] < 1e-6)
+#> [1] 0
+```
+
+As well as the final total biomass of all consumers combined:
+
+``` r
+sum(sol_random[length(times), (nb_b + 2) : nb_s])
+#> [1] 2.325076
+sum(sol_res[length(times), (nb_b + 2) : nb_s])
+#> [1] 2.325076
+sum(sol_lim[length(times), (nb_b + 2) : nb_s])
+#> [1] 7.864955
 ```
 
 # References
