@@ -2,8 +2,10 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/emilio-berti/assembly/workflows/R-CMD-check/badge.svg)](https://github.com/emilio-berti/assembly/actions)
-<!-- badges: end -->
 
+[![DOI](https://zenodo.org/badge/454057297.svg)](https://zenodo.org/badge/latestdoi/454057297)
+
+<!-- badges: end -->
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # Getting started
@@ -24,10 +26,7 @@ processes. Top-down assembly means that all species are introduced into
 a local community at once. The opposite, i.e. communities are built by
 sequential introductions of one species, is called bottom-up assembly.
 Bottom-up assembly is problematic for community composed of many
-species, as the number of unique assembly sequences is
-![S!](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;S%21 "S!"),
-where
-![S](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;S "S")
+species, as the number of unique assembly sequences is *S!*, where *S*
 is the number of species in the metaweb. For 100 species, for instance,
 there are
 ![\\sim 10^{157}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Csim%2010%5E%7B157%7D "\sim 10^{157}")
@@ -351,9 +350,9 @@ one, the move is always accepted. When the new similarity is higher than
 the old similarity, the move is accepted if:
 
 ![
-e^{\\left( 1 - \\frac{similarity\_{new}}{similarity\_{old}} \\right) \\frac{1}{t}} &gt; \\mathcal{U}(0, 1)
-](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%0Ae%5E%7B%5Cleft%28%201%20-%20%5Cfrac%7Bsimilarity_%7Bnew%7D%7D%7Bsimilarity_%7Bold%7D%7D%20%5Cright%29%20%5Cfrac%7B1%7D%7Bt%7D%7D%20%3E%20%5Cmathcal%7BU%7D%280%2C%201%29%0A "
-e^{\left( 1 - \frac{similarity_{new}}{similarity_{old}} \right) \frac{1}{t}} > \mathcal{U}(0, 1)
+exp \\left\[ \\left( 1 - \\frac{similarity\_{new}}{similarity\_{old}} \\right) \\frac{1}{t} \\right\]&gt; \\mathcal{U}(0, 1)
+](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%0Aexp%20%5Cleft%5B%20%5Cleft%28%201%20-%20%5Cfrac%7Bsimilarity_%7Bnew%7D%7D%7Bsimilarity_%7Bold%7D%7D%20%5Cright%29%20%5Cfrac%7B1%7D%7Bt%7D%20%5Cright%5D%3E%20%5Cmathcal%7BU%7D%280%2C%201%29%0A "
+exp \left[ \left( 1 - \frac{similarity_{new}}{similarity_{old}} \right) \frac{1}{t} \right]> \mathcal{U}(0, 1)
 ")
 
 This means that, even when the new similarity is higher than the old one
@@ -412,6 +411,8 @@ table(sapply(seq_len(1000), \(x) metropolis.hastings(1, 1e3, t = 1e9)))
 #> TRUE 
 #> 1000
 ```
+
+# References
 
 <div id="refs" class="references csl-bib-body hanging-indent">
 
