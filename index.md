@@ -1,3 +1,4 @@
+Emilio Berti
 
 <!-- badges: start -->
 
@@ -14,16 +15,16 @@
 
 Following food web terminology, I talk here about *resources* and
 *consumers*. In the case of plant-pollinator networks, this is analogous
-as replacing *resource* with *plant* and *consumers* with *pollinator*.
-In this case, however, some filtering steps may be unnecessary and
-unwanted. **More about this in a separate section.** I also talk about
-metawebs, which are the regional food web networks that emerge
-considering all interactions that occur in local communities within the
-region of interest.
+as replacing *resources* with *plants* and *consumers* with
+*pollinators*. In this case, however, some filtering steps may be
+unnecessary or unwanted. **More about this in a separate section.** I
+also talk about metawebs, which are the regional food web networks that
+emerge considering all interactions that occur in local communities
+within the region of interest.
 
-The general scope of *assembly* is to simulate top-down assembly
-processes. Top-down assembly means that all species are introduced into
-a local community at once. The opposite, i.e. communities are built by
+The main scope of *assembly* is to simulate top-down assembly processes.
+Top-down assembly means that all species are introduced into a local
+community at once. The opposite, i.e. communities are built by
 sequential introductions of one species, is called bottom-up assembly.
 Bottom-up assembly is problematic for community composed of many
 species, as the number of unique assembly sequences is *S!*, where *S*
@@ -50,7 +51,7 @@ the possible sequences to a (very) narrow space, only to 1,000,000
 sequences
 (![10^{-152}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;10%5E%7B-152%7D "10^{-152}")
 of the total fraction of possible sequences for 100 species; much *much*
-smaller than considering only a grain of sand simulating the whole
+smaller than considering only a grain of sand for simulating the whole
 Earth). As this seems quite dangerous, potentially leading to biased
 conclusions, I completed neglected bottom-up assembly processes.
 
@@ -77,7 +78,7 @@ show how to implement some of them at the end.
 
 # Draw random species from a metaweb
 
-Loading the required libraries and set a random seed
+Loading *assembly* and set a random seed
 
 ``` r
 library(assembly)
@@ -90,7 +91,6 @@ library(assembly)
 #> The following object is masked from 'package:base':
 #> 
 #>     union
-library(igraph)
 
 set.seed(123)
 ```
@@ -298,8 +298,8 @@ assembly:::.move(sp_resource, adirondack, t = 1)
 
 # Limiting similarity filtering
 
-The limiting similarity filtering is composed of a series of individuals
-moves:
+The limiting similarity filtering is a series of individuals moves. Each
+move is composed of three steps:
 
 1.  A metric
     (![J](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;J "J"))
@@ -357,7 +357,7 @@ exp \left[ \left( 1 - \frac{similarity_{new}}{similarity_{old}} \right) \frac{1}
 
 This means that, even when the new similarity is higher than the old one
 and the new community has species with increased similarity of
-interaction, it can still be accepted as a valid move based on a
+interaction, the move can still be accepted as valid depending on a
 probability density function. The probability of acceptance depends on
 how much the new similarity is higher than the old one and by the
 temperature parameter *t*. For increasing *t*, it is more likely to

@@ -1,4 +1,5 @@
 ---
+author: Emilio Berti
 output: github_document
 bibliography: references.bib  
 ---
@@ -30,13 +31,13 @@ knitr::opts_chunk$set(
 
 ## Background
 
-Following food web terminology, I talk here about _resources_ and _consumers_. In the case of plant-pollinator networks, this is analogous as replacing _resource_ with _plant_ and _consumers_ with _pollinator_. In this case, however, some filtering steps may be unnecessary and unwanted. __More about this in a separate section.__ I also talk about metawebs, which are the regional food web networks that emerge considering all interactions that occur in local communities within the region of interest.
+Following food web terminology, I talk here about _resources_ and _consumers_. In the case of plant-pollinator networks, this is analogous as replacing _resources_ with _plants_ and _consumers_ with _pollinators_. In this case, however, some filtering steps may be unnecessary or unwanted. __More about this in a separate section.__ I also talk about metawebs, which are the regional food web networks that emerge considering all interactions that occur in local communities within the region of interest.
 
-The general scope of _assembly_ is to simulate top-down assembly processes. Top-down assembly means that all species are introduced into a local community at once. The opposite, i.e. communities are built by sequential introductions of one species, is called bottom-up assembly. Bottom-up assembly is problematic for community composed of many species, as the number of unique assembly sequences is _S!_, where _S_ is the number of species in the metaweb. For 100 species, for instance, there are $\sim 10^{157}$ unique sequences, making computations (and replications) virtually impossible. Strikingly, @servan2021tractable showed that bottop-up and top-down assembly are equivalent under some specific conditions. 
+The main scope of _assembly_ is to simulate top-down assembly processes. Top-down assembly means that all species are introduced into a local community at once. The opposite, i.e. communities are built by sequential introductions of one species, is called bottom-up assembly. Bottom-up assembly is problematic for community composed of many species, as the number of unique assembly sequences is _S!_, where _S_ is the number of species in the metaweb. For 100 species, for instance, there are $\sim 10^{157}$ unique sequences, making computations (and replications) virtually impossible. Strikingly, @servan2021tractable showed that bottop-up and top-down assembly are equivalent under some specific conditions. 
 
 Far from assuming this is the case in _assembly_, I simply want to highlight that _assembly_ only implements top-down assembly and that none of the procedures in _assembly_ can be considered steps in an ecological sequence. Whenever I talk about _steps_, _moves_, and _sequences_ in _assembly_, I always refer to _procedures steps_, _procedures moves_, and _procedures sequences_. Always keep that in mind and don't be fooled by the terminology; there is no bottom-up assembly in _assembly_.
 
-At this point, if you're like me, you will ask _why not bottom-up assembly?_ The simple answer is: because it is computational unfeasible for large communities. To make it feasible, it is tempting to restrict the possible sequences to a (very) narrow space, only to 1,000,000 sequences ($10^{-152}$ of the total fraction of possible sequences for 100 species; much _much_ smaller than considering only a grain of sand simulating the whole Earth). As this seems quite dangerous, potentially leading to biased conclusions, I completed neglected bottom-up assembly processes.
+At this point, if you're like me, you will ask _why not bottom-up assembly?_ The simple answer is: because it is computational unfeasible for large communities. To make it feasible, it is tempting to restrict the possible sequences to a (very) narrow space, only to 1,000,000 sequences ($10^{-152}$ of the total fraction of possible sequences for 100 species; much _much_ smaller than considering only a grain of sand for simulating the whole Earth). As this seems quite dangerous, potentially leading to biased conclusions, I completed neglected bottom-up assembly processes.
 
 ## General workflow of _assembly_
 
@@ -50,11 +51,10 @@ These steps are not necessarily sequential, i.e. limiting similarity can be impo
 
 # Draw random species from a metaweb
 
-Loading the required libraries and set a random seed
+Loading _assembly_ and set a random seed
 
 ```{r init}
 library(assembly)
-library(igraph)
 
 set.seed(123)
 ```
@@ -171,7 +171,7 @@ assembly:::.move(sp_resource, adirondack, t = 1)
 
 # Limiting similarity filtering
 
-The limiting similarity filtering is composed of a series of individuals moves:
+The limiting similarity filtering is a series of individuals moves. Each move is composed of three steps:
 
   1. A metric ($J$) representing the similarity of interaction is calculated for each species in the community.
   2. One species is removed with probability proportional to their $J$.
@@ -195,7 +195,7 @@ To accept a move, it must pass a Metropolis-Hasting algorithm. If the similarity
 $$
 exp \left[ \left( 1 - \frac{similarity_{new}}{similarity_{old}} \right) \frac{1}{t} \right]> \mathcal{U}(0, 1)
 $$
-This means that, even when the new similarity is higher than the old one and the new community has species with increased similarity of interaction, it can still be accepted as a valid move based on a probability density function. The probability of acceptance depends on how much the new similarity is higher than the old one and by the temperature parameter _t_. For increasing _t_, it is more likely to accept a non-favorable move:
+This means that, even when the new similarity is higher than the old one and the new community has species with increased similarity of interaction, the move can still be accepted as valid depending on a probability density function. The probability of acceptance depends on how much the new similarity is higher than the old one and by the temperature parameter _t_. For increasing _t_, it is more likely to accept a non-favorable move:
 
 ```{r metro, fig.height=5, fig.width=6, out.width="80%"}
 temp <- 10 ^ seq(-2, 1, by = .1)
