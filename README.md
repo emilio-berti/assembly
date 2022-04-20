@@ -6,7 +6,10 @@ Emilio Berti
 
 [![DOI](https://zenodo.org/badge/454057297.svg)](https://zenodo.org/badge/latestdoi/454057297)
 
+[![Codecov test
+coverage](https://codecov.io/gh/emilio-berti/assembly/branch/master/graph/badge.svg)](https://codecov.io/gh/emilio-berti/assembly?branch=master)
 <!-- badges: end -->
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # Getting started
@@ -506,11 +509,11 @@ dyn_lim <- create_model_Unscaled(nb_s, nb_b,
                                  metaweb[sp_limiting, sp_limiting])
 # default parameters
 initialise_default_Unscaled(dyn_random)
-#> C++ object <0x564e71ab93e0> of class 'Unscaled' <0x564e70e556b0>
+#> C++ object <0x56398e6e0500> of class 'Unscaled' <0x5639926d9200>
 initialise_default_Unscaled(dyn_res)
-#> C++ object <0x564e6eb6e350> of class 'Unscaled' <0x564e70e556b0>
+#> C++ object <0x5639909b04f0> of class 'Unscaled' <0x5639926d9200>
 initialise_default_Unscaled(dyn_lim)
-#> C++ object <0x564e728e9610> of class 'Unscaled' <0x564e70e556b0>
+#> C++ object <0x563990f353f0> of class 'Unscaled' <0x5639926d9200>
 # initialize C++ fields
 dyn_random$initialisations()
 dyn_res$initialisations()
