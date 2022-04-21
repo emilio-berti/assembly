@@ -6,7 +6,10 @@ Emilio Berti
 
 [![DOI](https://zenodo.org/badge/454057297.svg)](https://zenodo.org/badge/latestdoi/454057297)
 
+[![Codecov test
+coverage](https://codecov.io/gh/emilio-berti/assembly/branch/master/graph/badge.svg)](https://codecov.io/gh/emilio-berti/assembly?branch=master)
 <!-- badges: end -->
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # Getting started
@@ -412,6 +415,48 @@ table(sapply(seq_len(1000), \(x) metropolis.hastings(1, 1e3, t = 1e9)))
 #> 1000
 ```
 
+## Similarity trend by move
+
+``` r
+get_similarity <- function(sp) {
+  g <- graph_from_adjacency_matrix(adirondack[sp, sp])
+  consumers <- intersect(sp, assembly:::.consumers(adirondack))
+  J <- similarity(
+    g,
+    vids = which(sp %in% consumers)
+  )
+  diag(J) <- NA
+  J <- sum(J, na.rm = TRUE)
+  return(J)
+}
+
+temps <- 10 ^ seq(-3, 0, by = 1)
+sim <- matrix(rep(NA, 300 * length(temps)), ncol = length(temps))
+for (t in seq_along(temps)) {
+  sp <- sp_resource
+  for (i in seq_len(nrow(sim))) {
+    sim[i, t] <- get_similarity(sp)
+    sp <- assembly:::.move(sp, adirondack, t = temps[t])
+  }
+}
+```
+
+``` r
+pal <- colorRampPalette(colors = c("steelblue", "tomato"))(length(temps))
+plot(seq_len(nrow(sim)), sim[, 1], frame = FALSE, 
+     xlab = "Move number", ylab = "Similarity",
+     type = "l", col = pal[1], lwd = 2,
+     ylim = c(min(sim), max(sim) * 1.25))
+for (i in 2:length(temps)) {
+  lines(seq_len(nrow(sim)), sim[, i], col = pal[i], lw = 2)
+}
+legend(x = 70, y = 130, fill = pal, legend = temps,
+       title = "Temperature", horiz = TRUE, 
+       box.lwd = 0, bg = NA)
+```
+
+<img src="man/figures/README-sim-trend-plot-1.png" width="80%" style="display: block; margin: auto;" />
+
 # Integrating food web dynamics
 
 Until now, we focused on assembly processes and how this influence the
@@ -464,13 +509,13 @@ filtering:
 ``` r
 sp <- draw_random_species(30, colnames(metaweb))
 length(setdiff(sp, assembly:::.basals(metaweb)))
-#> [1] 20
+#> [1] 21
 sp_resource <- resource_filtering(sp, metaweb, keep.n.basal = TRUE)
 length(setdiff(sp_resource, assembly:::.basals(metaweb)))
-#> [1] 20
+#> [1] 21
 sp_limiting <- similarity_filtering(sp_resource, metaweb, t = 1e6, max.iter = 1e2)
 length(setdiff(sp_limiting, assembly:::.basals(metaweb)))
-#> [1] 20
+#> [1] 21
 
 show_graph(sp, metaweb, title = "Random")
 ```
@@ -506,11 +551,11 @@ dyn_lim <- create_model_Unscaled(nb_s, nb_b,
                                  metaweb[sp_limiting, sp_limiting])
 # default parameters
 initialise_default_Unscaled(dyn_random)
-#> C++ object <0x564e71ab93e0> of class 'Unscaled' <0x564e70e556b0>
+#> C++ object <0x556d413c4f80> of class 'Unscaled' <0x556d3f298a80>
 initialise_default_Unscaled(dyn_res)
-#> C++ object <0x564e6eb6e350> of class 'Unscaled' <0x564e70e556b0>
+#> C++ object <0x556d41a38840> of class 'Unscaled' <0x556d3f298a80>
 initialise_default_Unscaled(dyn_lim)
-#> C++ object <0x564e728e9610> of class 'Unscaled' <0x564e70e556b0>
+#> C++ object <0x556d3deea580> of class 'Unscaled' <0x556d3f298a80>
 # initialize C++ fields
 dyn_random$initialisations()
 dyn_res$initialisations()
@@ -533,21 +578,21 @@ plot_odeweb(sol_random, nb_s)
 plot_odeweb(sol_res, nb_s)
 ```
 
-<img src="man/figures/README-solver-1.png" width="50%" style="display: block; margin: auto;" />
+<img src="man/figures/README-solver-1.png" width="80%" style="display: block; margin: auto;" />
 
 ``` r
 plot_odeweb(sol_lim, nb_s)
 ```
 
-<img src="man/figures/README-solver-2.png" width="50%" style="display: block; margin: auto;" />
+<img src="man/figures/README-solver-2.png" width="80%" style="display: block; margin: auto;" />
 
 The number of extinct species can be extracted by:
 
 ``` r
 sum(sol_random[length(times), -1] < 1e-6)
-#> [1] 1
+#> [1] 5
 sum(sol_res[length(times), -1] < 1e-6)
-#> [1] 1
+#> [1] 5
 sum(sol_lim[length(times), -1] < 1e-6)
 #> [1] 0
 ```
@@ -556,11 +601,11 @@ As well as the final total biomass of all consumers combined:
 
 ``` r
 sum(sol_random[length(times), (nb_b + 2) : nb_s])
-#> [1] 2.325076
+#> [1] 1.286569
 sum(sol_res[length(times), (nb_b + 2) : nb_s])
-#> [1] 2.325076
+#> [1] 1.286569
 sum(sol_lim[length(times), (nb_b + 2) : nb_s])
-#> [1] 7.864955
+#> [1] 3.172702
 ```
 
 # References
