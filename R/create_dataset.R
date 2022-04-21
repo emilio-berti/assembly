@@ -1,3 +1,8 @@
+# Code used to create the assembly::adirondack dataset.
+#
+# The original source was the GATEWAy 1.0 database:
+# https://idata.idiv.de/ddm/Data/ShowData/283?version=3
+#
 # library(igraph)
 #
 # .create_d <- function() {
