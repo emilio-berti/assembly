@@ -42,8 +42,6 @@ metropolis.hastings <- function(old.value, new.value, t = 0){
   if (length(isolated) > 0) stop("Isolated species detected in input")
   g <- graph_from_adjacency_matrix(metaweb[sp.names, sp.names])
   consumers <- intersect(sp.names, .consumers(metaweb))
-  # BUG ---------------
-  # SIMILARITY IS NOW ONLY FOR FIRST CONSMUER.
   simil <- similarity(g,
                       vids = which(sp.names %in% consumers),
                       method = method)
