@@ -239,6 +239,46 @@ The reason to include this algorithm is to avoid a purely deterministic procedur
 table(sapply(seq_len(1000), \(x) metropolis.hastings(1, 1e3, t = 1e9)))
 ```
 
+## Similarity trend by move
+
+```{r sim-trend}
+get_similarity <- function(sp) {
+  g <- graph_from_adjacency_matrix(adirondack[sp, sp])
+  consumers <- intersect(sp, assembly:::.consumers(adirondack))
+  J <- similarity(
+    g,
+    vids = which(sp %in% consumers)
+  )
+  diag(J) <- NA
+  J <- sum(J, na.rm = TRUE)
+  return(J)
+}
+
+temps <- 10 ^ seq(-3, 0, by = 1)
+sim <- matrix(rep(NA, 300 * length(temps)), ncol = length(temps))
+for (t in seq_along(temps)) {
+  sp <- sp_resource
+  for (i in seq_len(nrow(sim))) {
+    sim[i, t] <- get_similarity(sp)
+    sp <- assembly:::.move(sp, adirondack, t = temps[t])
+  }
+}
+```
+
+```{r sim-trend-plot, fig.height=5, fig.width=6, out.width="80%"}
+pal <- colorRampPalette(colors = c("steelblue", "tomato"))(length(temps))
+plot(seq_len(nrow(sim)), sim[, 1], frame = FALSE, 
+     xlab = "Move number", ylab = "Similarity",
+     type = "l", col = pal[1], lwd = 2,
+     ylim = c(min(sim), max(sim) * 1.25))
+for (i in 2:length(temps)) {
+  lines(seq_len(nrow(sim)), sim[, i], col = pal[i], lw = 2)
+}
+legend(x = 70, y = 130, fill = pal, legend = temps,
+       title = "Temperature", horiz = TRUE, 
+       box.lwd = 0, bg = NA)
+```
+
 # Integrating food web dynamics
 
 Until now, we focused on assembly processes and how this influence the topology of the network. It is possible to integrate the assembly with food web dynamics, e.g. comparing dynamics between filtering processes. I collaborated to the _ATNr_ package to solve food web dynamical systems.
@@ -314,7 +354,7 @@ dyn_lim$initialisations()
 
 And call the solver to obtain the dynamics:
 
-```{r solver}
+```{r solver, fig.height=5, fig.width=6, out.width="80%"}
 times <- seq(1, 1e9, 1e7)
 
 sol_random <- lsoda_wrapper(times, traits$biomasses[traits$species %in% sp],

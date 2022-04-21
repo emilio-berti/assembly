@@ -7,3 +7,4 @@
 ^LICENSE\.md$
 ^index.md$
 references.bib
+^codecov\.yml$

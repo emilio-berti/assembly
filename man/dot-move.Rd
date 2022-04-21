@@ -4,7 +4,7 @@
 \alias{.move}
 \title{One move of the limiting similarity algorithm}
 \usage{
-.move(sp.names, metaweb, t = 0)
+.move(sp.names, metaweb, t = 0, method = "jaccard")
 }
 \arguments{
 \item{sp.names}{vector, names of the species in the meta-community.}
@@ -12,6 +12,9 @@
 \item{metaweb}{adjacency matrix of the meta food web (metaweb).}
 
 \item{t}{is the 'temperature' of the system.}
+
+\item{method}{character, same as in similarity (igraph). Options are
+'jaccard', 'dice', and 'invlogweighted'.}
 }
 \value{
 A vector with the species names.

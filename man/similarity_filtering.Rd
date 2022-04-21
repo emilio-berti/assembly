@@ -4,7 +4,13 @@
 \alias{similarity_filtering}
 \title{Limiting similarity filtering assembly}
 \usage{
-similarity_filtering(sp.names, metaweb, t = 0, max.iter = 1000)
+similarity_filtering(
+  sp.names,
+  metaweb,
+  t = 0,
+  method = "jaccard",
+  max.iter = 1000
+)
 }
 \arguments{
 \item{sp.names}{vector, names of the species in the meta-community.}
@@ -12,6 +18,9 @@ similarity_filtering(sp.names, metaweb, t = 0, max.iter = 1000)
 \item{metaweb}{adjacency matrix of the meta food web (metaweb).}
 
 \item{t}{is the 'temperature' of the system.}
+
+\item{method}{character, same as in similarity (igraph). Options are
+'jaccard', 'dice', and 'invlogweighted'.}
 
 \item{max.iter}{is the number of maximum iterations.}
 }
