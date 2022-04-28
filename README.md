@@ -457,6 +457,21 @@ legend(x = 70, y = 130, fill = pal, legend = temps,
 
 <img src="man/figures/README-sim-trend-plot-1.png" width="80%" style="display: block; margin: auto;" />
 
+# Filtering algorithms and modularity
+
+I implemented the hidden function `assembly:::.modules()` to return the
+number of modules of the food web. This uses the fast-greedy clustering
+algorithm of *igraph*:
+
+``` r
+assembly:::.modules(sp, adirondack)
+#> [1] 4
+assembly:::.modules(sp_resource, adirondack)
+#> [1] 3
+assembly:::.modules(sp_sim, adirondack)
+#> [1] 3
+```
+
 # Integrating food web dynamics
 
 Until now, we focused on assembly processes and how this influence the
@@ -551,11 +566,11 @@ dyn_lim <- create_model_Unscaled(nb_s, nb_b,
                                  metaweb[sp_limiting, sp_limiting])
 # default parameters
 initialise_default_Unscaled(dyn_random)
-#> C++ object <0x556d413c4f80> of class 'Unscaled' <0x556d3f298a80>
+#> C++ object <0x565194de39c0> of class 'Unscaled' <0x56518f80d250>
 initialise_default_Unscaled(dyn_res)
-#> C++ object <0x556d41a38840> of class 'Unscaled' <0x556d3f298a80>
+#> C++ object <0x565194ff7fb0> of class 'Unscaled' <0x56518f80d250>
 initialise_default_Unscaled(dyn_lim)
-#> C++ object <0x556d3deea580> of class 'Unscaled' <0x556d3f298a80>
+#> C++ object <0x565192bdacb0> of class 'Unscaled' <0x56518f80d250>
 # initialize C++ fields
 dyn_random$initialisations()
 dyn_res$initialisations()

@@ -30,24 +30,29 @@ name_metaweb <- function(metaweb) {
 #'
 #' @return NULL
 show_fw <- function(sp.names, metaweb, title = NULL) {
+  # reorder species names to match order of metweb
+  sp.names <- intersect(colnames(metaweb), sp.names)
+  # get adjacency matrix
   adj <- metaweb[sp.names, sp.names]
+  # get basals and consumers
   sp_basals <- .basals(metaweb)
   sp_basals <- which(colnames(adj) %in% sp_basals)
   sp_consumers <- .consumers(metaweb)
   sp_consumers <- which(colnames(adj) %in% sp_consumers)
+  # reorder adjacency matrix to have basals first
   adj <- adj[c(sp_basals, sp_consumers), c(sp_basals, sp_consumers)]
   S <- nrow(adj)
-  adj <- adj[nrow(adj):1, ]
+  adj <- adj[S:1, ]
   adj <- t(adj)
   adj[1:length(sp_basals), ] <- -1
-
-  oldpar <- par(no.readonly = TRUE)
+  # plot
+  oldpar <- par(no.readonly = TRUE) #to restore default
   par(mar = c(1, 1, 2, 2))
   image(adj, col = c("brown", "goldenrod", "steelblue"),
         frame = FALSE, axes = FALSE)
   title(title)
   grid(nx = S, ny = S, lty = 1, col = adjustcolor("grey20", alpha.f = .1))
-  par(oldpar)
+  par(oldpar) #restore default
 }
 
 #' @title Plot graph
@@ -185,4 +190,17 @@ show_graph <- function(sp.names, metaweb, title = NULL) {
 .components <- function(sp.names, metaweb) {
   g <- graph_from_adjacency_matrix(metaweb[sp.names, sp.names])
   return (components(g)$no)
+}
+
+#' @title Number of modules of the food web
+#'
+#' @details Return the number of modules in the network. Modules are obtained
+#'   using a fast greedy algorithm on the undirected food web.
+#'
+#' @param sp.names vector of species names.
+#' @param metaweb adjacency matrix of the metaweb.
+.modules <- function(sp.names, metaweb) {
+  g <- graph_from_adjacency_matrix(metaweb[sp.names, sp.names])
+  cl <- cluster_fast_greedy(as.undirected(g))
+  return (length(cl))
 }

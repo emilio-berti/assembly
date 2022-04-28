@@ -279,6 +279,16 @@ legend(x = 70, y = 130, fill = pal, legend = temps,
        box.lwd = 0, bg = NA)
 ```
 
+# Filtering algorithms and modularity
+
+I implemented the hidden function `assembly:::.modules()` to return the number of modules of the food web. This uses the fast-greedy clustering algorithm of _igraph_:
+
+```{r modules}
+assembly:::.modules(sp, adirondack)
+assembly:::.modules(sp_resource, adirondack)
+assembly:::.modules(sp_sim, adirondack)
+```
+
 # Integrating food web dynamics
 
 Until now, we focused on assembly processes and how this influence the topology of the network. It is possible to integrate the assembly with food web dynamics, e.g. comparing dynamics between filtering processes. I collaborated to the _ATNr_ package to solve food web dynamical systems.

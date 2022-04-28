@@ -29,13 +29,24 @@ metropolis.hastings <- function(old.value, new.value, t = 0){
 #' @param t is the 'temperature' of the system.
 #' @param method character, same as in similarity (igraph). Options are
 #'   'jaccard', 'dice', and 'invlogweighted'.
+#' @param stat character, statistic used to summarize similarity. Currently
+#'   available are c("mean", "sum").
+#'
+#' @details Similarities are calculated using igraph as matrices. To summarize
+#'   these into species-level metrics, the argument "stat" is needed. When stat
+#'   = "mean", probability of removal of species is proportional to the average
+#'   of their similarities. When stat = "sum", these probabilities are
+#'   proportional to the sum of the similarity of species. Global similarities,
+#'   i.e. of the whole food web, are also summarized depending on the "stat"
+#'   argument in a similar way.
 #'
 #' @return A vector with the species names.
 .move <- function(
   sp.names,
   metaweb,
   t = 0,
-  method = "jaccard"
+  method = "jaccard",
+  stat = "mean"
 ) {
   # find isolated species
   isolated <- .find_isolated(sp.names, metaweb)
@@ -46,8 +57,8 @@ metropolis.hastings <- function(old.value, new.value, t = 0){
                       vids = which(sp.names %in% consumers),
                       method = method)
   diag(simil) <- NA
-  simil <- colSums(simil, na.rm = TRUE)
-  remove <- sample(consumers, size = 1, prob = simil)
+  prob_removed <- apply(simil, MARGIN = 2, stat, na.rm = TRUE)
+  remove <- sample(consumers, size = 1, prob = prob_removed)
   # replace and check new similarity
   repl <- .find_replacements(sp.names, remove, metaweb,
                              keep.n.basal = TRUE) #avoid pick a basal
@@ -61,9 +72,18 @@ metropolis.hastings <- function(old.value, new.value, t = 0){
                           vids = which(new.sp %in% consumers),
                           method = method)
   diag(new.simil) <- NA
-  new.simil <- colSums(new.simil, na.rm = TRUE)
+  # summarize similarities
+  if (stat == "mean") {
+    simil <- mean(simil, na.rm = TRUE)
+    new.simil <- mean(new.simil, na.rm = TRUE)
+  } else if (stat == "sum") {
+    simil <- sum(simil, na.rm = TRUE)
+    new.simil <- sum(new.simil, na.rm = TRUE)
+  } else {
+    stop("'stat' must be one of c('mean', 'sum')")
+  }
   # compare old and new similarity
-  if (metropolis.hastings(sum(simil), sum(new.simil), t = t)) {
+  if (metropolis.hastings(simil, new.simil, t = t)) {
     return (new.sp)
   } else {
     return (sp.names)

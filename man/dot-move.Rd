@@ -4,7 +4,7 @@
 \alias{.move}
 \title{One move of the limiting similarity algorithm}
 \usage{
-.move(sp.names, metaweb, t = 0, method = "jaccard")
+.move(sp.names, metaweb, t = 0, method = "jaccard", stat = "mean")
 }
 \arguments{
 \item{sp.names}{vector, names of the species in the meta-community.}
@@ -15,10 +15,22 @@
 
 \item{method}{character, same as in similarity (igraph). Options are
 'jaccard', 'dice', and 'invlogweighted'.}
+
+\item{stat}{character, statistic used to summarize similarity. Currently
+available are c("mean", "sum").}
 }
 \value{
 A vector with the species names.
 }
 \description{
 One move of the limiting similarity algorithm
+}
+\details{
+Similarities are calculated using igraph as matrices. To summarize
+  these into species-level metrics, the argument "stat" is needed. When stat
+  = "mean", probability of removal of species is proportional to the average
+  of their similarities. When stat = "sum", these probabilities are
+  proportional to the sum of the similarity of species. Global similarities,
+  i.e. of the whole food web, are also summarized depending on the "stat"
+  argument in a similar way.
 }
