@@ -60,13 +60,17 @@ metropolis.hastings <- function(old.value, new.value, t = 0){
                       mode = "in")
   diag(simil) <- NA
   prob_removed <- apply(simil, MARGIN = 2, stat, na.rm = TRUE)
+  while(TRUE) { 
   remove <- sample(consumers, size = 1, prob = prob_removed)
   # replace and check new similarity
   repl <- .find_replacements(sp.names, remove, metaweb,
                              keep.n.basal = TRUE) #avoid pick a basal
   new.sp <- union(setdiff(sp.names, remove), repl)
+    if(.components(new.sp, metaweb)==1 & # I think this achieves what line 73 attempts to do
+       length(.find_isolated(new.sp, metaweb)) == 0 ) break()
+  }
   # if isolated detected, skip move
-  if(length(.find_isolated(new.sp, metaweb) > 0)) return (sp.names)
+  # if(length(.find_isolated(new.sp, metaweb) > 0)) return (sp.names)
   # else get new similarity
   new.g <- graph_from_adjacency_matrix(metaweb[new.sp, new.sp])
   consumers <- intersect(new.sp, .consumers(metaweb)) #basal species are filtered this way
