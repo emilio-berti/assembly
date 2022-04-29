@@ -9,6 +9,7 @@ similarity_filtering(
   metaweb,
   t = 0,
   method = "jaccard",
+  stat = "mean",
   max.iter = 1000
 )
 }
@@ -22,6 +23,9 @@ similarity_filtering(
 \item{method}{character, same as in similarity (igraph). Options are
 'jaccard', 'dice', and 'invlogweighted'.}
 
+\item{stat}{character, statistic used to summarize similarity. Currently
+available are c("mean", "sum").}
+
 \item{max.iter}{is the number of maximum iterations.}
 }
 \value{
@@ -29,4 +33,23 @@ A vector with the species names.
 }
 \description{
 Limiting similarity filtering assembly
+}
+\details{
+Similarities are calculated using igraph. To summarize these into
+  species-level metrics, the argument 'stat' is needed. When stat = "mean",
+  probability of removal of species is proportional to the average of their
+  similarities. When stat = "sum", these probabilities are proportional to
+  the sum of the similarity of species. Global similarities, i.e. of the
+  whole food web, are also summarized depending on the "stat" argument in a
+  similar way.
+
+  Similarity is computed using only 'in' links, i.e. species are considered
+  similar if they share similar resources, but not necessarily have similar
+  consumers.
+
+  The temperature parameter 't' specifies the degree of stochasticity of the
+  algorithm. For t > 0, an unfavourable move can be accepted, if it passes a
+  probabilistic acceptance criterion. For t = 0, stochasticity is removed and
+  the algorithm becomes purely deterministic. This may be result in some
+  unwarranted behavior, e.g. strongly modular food webs.
 }

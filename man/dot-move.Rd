@@ -33,4 +33,8 @@ Similarities are calculated using igraph as matrices. To summarize
   proportional to the sum of the similarity of species. Global similarities,
   i.e. of the whole food web, are also summarized depending on the "stat"
   argument in a similar way.
+
+  Similarity is computed using only 'in' links, i.e. species are considered
+  similar if they share similar resources, but not necessarily have similar
+  consumers.
 }

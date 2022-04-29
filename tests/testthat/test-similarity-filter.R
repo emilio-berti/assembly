@@ -3,8 +3,6 @@ test_that("Limiting similarity", {
   n <- sample(seq(10, 20), 1)
   sp <- draw_random_species(n, colnames(adirondack))
   sp <- resource_filtering(sp, adirondack)
-  # I chose the seed to first throw an error
-  expect_error(similarity_filtering(sp, adirondack, t = .1, max.iter = 100))
   # and then returning a valid output
   sp <- similarity_filtering(sp, adirondack, t = .1, max.iter = 100)
   expect_length(sp, n)
