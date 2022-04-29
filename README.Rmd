@@ -283,7 +283,7 @@ legend(x = 70, y = 130, fill = pal, legend = temps,
 
 Jaccard similarity is often used to detect modules in community detection problems. The rationale is that similarity is high within modules and low between modules. This implies that the limiting similarity filtering, in its purely deterministic version ($t = 0$), it will converge to food webs that are highly modular, as this minimize the total Jaccard similarity of the network. This effect is more pronounced in sparser networks, that is in food webs with lower connectance.
 
-To illustrate this, I generate 200 random networks based for five different connectance levels and calculate the average similarity of the network as well as its modularity metric:
+To illustrate this, I generate 200 random networks for five different connectance levels and calculate the average similarity of the network as well as its modularity metric:
 
 ```{r modularity}
 REPS <- 200

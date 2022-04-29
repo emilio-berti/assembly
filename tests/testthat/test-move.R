@@ -4,7 +4,7 @@ test_that("Metropolis-Hastings", {
   expect_type(metropolis.hastings(1, 1, 1), "logical")
 })
 
-test_that("One move", {
+test_that("One move and t = 0", {
   set.seed(1234)
   n <- sample(seq(10, 50), 1)
   sp <- draw_random_species(n, colnames(adirondack))
@@ -15,5 +15,6 @@ test_that("One move", {
   fw <- adirondack
   fw[sp[1], ] <- 0
   fw[, sp[1]] <- 0
-  expect_error(assembly:::.move(sp, fw))
+  expect_error(similarity_filtering(sp, t = 0.1, fw))
+  expect_identical(sp, assembly:::.move(sp, fw))
 })

@@ -469,9 +469,9 @@ the total Jaccard similarity of the network. This effect is more
 pronounced in sparser networks, that is in food webs with lower
 connectance.
 
-To illustrate this, I generate 200 random networks based for five
-different connectance levels and calculate the average similarity of the
-network as well as its modularity metric:
+To illustrate this, I generate 200 random networks for five different
+connectance levels and calculate the average similarity of the network
+as well as its modularity metric:
 
 ``` r
 REPS <- 200
@@ -587,11 +587,11 @@ dyn_lim <- create_model_Unscaled(nb_s, nb_b,
                                  metaweb[sp_limiting, sp_limiting])
 # default parameters
 initialise_default_Unscaled(dyn_random)
-#> C++ object <0x5622c9f1ff50> of class 'Unscaled' <0x5622cce8d000>
+#> C++ object <0x555f012d0800> of class 'Unscaled' <0x555f03315660>
 initialise_default_Unscaled(dyn_res)
-#> C++ object <0x5622cbd9a100> of class 'Unscaled' <0x5622cce8d000>
+#> C++ object <0x555f02146810> of class 'Unscaled' <0x555f03315660>
 initialise_default_Unscaled(dyn_lim)
-#> C++ object <0x5622cddcf730> of class 'Unscaled' <0x5622cce8d000>
+#> C++ object <0x555effee78f0> of class 'Unscaled' <0x555f03315660>
 # initialize C++ fields
 dyn_random$initialisations()
 dyn_res$initialisations()

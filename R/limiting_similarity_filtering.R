@@ -52,9 +52,6 @@ metropolis.hastings <- function(old.value, new.value, t = 0){
   method = "jaccard",
   stat = "mean"
 ) {
-  # find isolated species
-  isolated <- .find_isolated(sp.names, metaweb)
-  if (length(isolated) > 0) stop("Isolated species detected in input")
   g <- graph_from_adjacency_matrix(metaweb[sp.names, sp.names])
   consumers <- intersect(sp.names, .consumers(metaweb))
   simil <- similarity(g,
@@ -68,7 +65,7 @@ metropolis.hastings <- function(old.value, new.value, t = 0){
   repl <- .find_replacements(sp.names, remove, metaweb,
                              keep.n.basal = TRUE) #avoid pick a basal
   new.sp <- union(setdiff(sp.names, remove), repl)
-  # if isolated detected, skip
+  # if isolated detected, skip move
   if(length(.find_isolated(new.sp, metaweb) > 0)) return (sp.names)
   # else get new similarity
   new.g <- graph_from_adjacency_matrix(metaweb[new.sp, new.sp])
@@ -135,11 +132,18 @@ similarity_filtering <- function(
   max.iter = 1e3
 ) {
   if (t == 0) message("Temperature 't' = 0; this is a purely deterministic filtering")
+  # check for isolated species and stop if detected
+  isolated <- .find_isolated(sp.names, metaweb)
+  if (length(isolated) > 0) stop("Isolated species detected in input")
+  # start iterations
   new_sp <- sp.names
   for (i in seq_len(max.iter)) new_sp <- .move(new_sp, metaweb, t, method, stat)
   if (length(sp.names) != length(new_sp)) {
     stop("Number of species changed")
   }
-  if (.components(new_sp, metaweb) > 1) stop("Isolated component detected")
+  # check for isolated species and stop if detected
+  isolated <- .find_isolated(new_sp, metaweb)
+  if (length(isolated) > 0) stop("Isolated species detected in output")
+  if (.components(new_sp, metaweb) > 1) warning("Isolated component detected in output")
   return(new_sp)
 }
