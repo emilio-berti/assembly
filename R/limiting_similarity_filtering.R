@@ -66,7 +66,9 @@ metropolis.hastings <- function(old.value, new.value, t = 0){
                              keep.n.basal = TRUE) #avoid pick a basal
   new.sp <- union(setdiff(sp.names, remove), repl)
   # if isolated detected, skip move
-  if(length(.find_isolated(new.sp, metaweb) > 0)) return (sp.names)
+  if (length(.find_isolated(new.sp, metaweb) > 0)) return (sp.names)
+  # if more than one components, skip move
+  if (.components(new.sp, metaweb) > 1) return(sp.names)
   # else get new similarity
   new.g <- graph_from_adjacency_matrix(metaweb[new.sp, new.sp])
   consumers <- intersect(new.sp, .consumers(metaweb)) #basal species are filtered this way
@@ -135,6 +137,7 @@ similarity_filtering <- function(
   # check for isolated species and stop if detected
   isolated <- .find_isolated(sp.names, metaweb)
   if (length(isolated) > 0) stop("Isolated species detected in input")
+  if (.components(sp.names, metaweb) > 1) stop("Isolated components detected in input")
   # start iterations
   new_sp <- sp.names
   for (i in seq_len(max.iter)) new_sp <- .move(new_sp, metaweb, t, method, stat)
