@@ -457,6 +457,42 @@ legend(x = 70, y = 130, fill = pal, legend = temps,
 
 <img src="man/figures/README-sim-trend-plot-1.png" width="80%" style="display: block; margin: auto;" />
 
+# Filtering algorithms and modularity
+
+Jaccard similarity is often used to detect modules in community
+detection problems. The rationale is that similarity is high within
+modules and low between modules. This implies that the limiting
+similarity filtering, in its purely deterministic version
+(![t = 0](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;t%20%3D%200 "t = 0")),
+it will converge to food webs that are highly modular, as this minimize
+the total Jaccard similarity of the network. This effect is more
+pronounced in sparser networks, that is in food webs with lower
+connectance.
+
+To illustrate this, I generate 200 random networks for five different
+connectance levels and calculate the average similarity of the network
+as well as its modularity metric:
+
+``` r
+REPS <- 200
+CONNECTANCE <- seq(.1, .3, by = .05)
+
+modularity <- matrix(rep(NA, REPS * length(CONNECTANCE)), nrow = REPS)
+similarity <- matrix(rep(NA, REPS * length(CONNECTANCE)), nrow = REPS)
+for (C in CONNECTANCE) {
+    for (rep in seq_len(REPS)) {
+        m <- matrix(as.numeric(runif(1e4) < C), 1e2, 1e2)
+        g <- graph_from_adjacency_matrix(m)
+        members <- membership(cluster_fast_greedy(as.undirected(g)))
+        modularity[rep, which (CONNECTANCE == C)] <- modularity(as.undirected(g), members)
+        sim <- similarity(g, mode = "in", method = "jaccard")
+        similarity[rep, which (CONNECTANCE == C)] <- mean(sim, na.rm = TRUE)
+    }
+}
+```
+
+<img src="man/figures/README-modularity-plot-1.png" width="80%" style="display: block; margin: auto;" />
+
 # Integrating food web dynamics
 
 Until now, we focused on assembly processes and how this influence the
@@ -509,13 +545,13 @@ filtering:
 ``` r
 sp <- draw_random_species(30, colnames(metaweb))
 length(setdiff(sp, assembly:::.basals(metaweb)))
-#> [1] 21
+#> [1] 19
 sp_resource <- resource_filtering(sp, metaweb, keep.n.basal = TRUE)
 length(setdiff(sp_resource, assembly:::.basals(metaweb)))
-#> [1] 21
+#> [1] 19
 sp_limiting <- similarity_filtering(sp_resource, metaweb, t = 1e6, max.iter = 1e2)
 length(setdiff(sp_limiting, assembly:::.basals(metaweb)))
-#> [1] 21
+#> [1] 19
 
 show_graph(sp, metaweb, title = "Random")
 ```
@@ -551,11 +587,11 @@ dyn_lim <- create_model_Unscaled(nb_s, nb_b,
                                  metaweb[sp_limiting, sp_limiting])
 # default parameters
 initialise_default_Unscaled(dyn_random)
-#> C++ object <0x556d413c4f80> of class 'Unscaled' <0x556d3f298a80>
+#> C++ object <0x555f012d0800> of class 'Unscaled' <0x555f03315660>
 initialise_default_Unscaled(dyn_res)
-#> C++ object <0x556d41a38840> of class 'Unscaled' <0x556d3f298a80>
+#> C++ object <0x555f02146810> of class 'Unscaled' <0x555f03315660>
 initialise_default_Unscaled(dyn_lim)
-#> C++ object <0x556d3deea580> of class 'Unscaled' <0x556d3f298a80>
+#> C++ object <0x555effee78f0> of class 'Unscaled' <0x555f03315660>
 # initialize C++ fields
 dyn_random$initialisations()
 dyn_res$initialisations()
@@ -601,11 +637,11 @@ As well as the final total biomass of all consumers combined:
 
 ``` r
 sum(sol_random[length(times), (nb_b + 2) : nb_s])
-#> [1] 1.286569
+#> [1] 5.502836
 sum(sol_res[length(times), (nb_b + 2) : nb_s])
-#> [1] 1.286569
+#> [1] 5.502836
 sum(sol_lim[length(times), (nb_b + 2) : nb_s])
-#> [1] 3.172702
+#> [1] 5.132601
 ```
 
 # References

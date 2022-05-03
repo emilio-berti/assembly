@@ -1,0 +1,16 @@
+citHeader("To cite assembly in publications use:")
+
+citEntry(entry = "Manual",
+         title        = "The R package {assembly}: simulate community assembly in food webs",
+         author       = personList(as.person("Emilio Berti"),
+                                   as.person("Angelos Amyntas")),
+         year         = "2022",
+         url          = "https://emilio-berti.github.io/assembly/",
+         note         = "R package version 0.1.3",
+
+         textVersion  =
+           paste("Emilio Berti and Angelos Amyntas (2022).",
+                 "The R package {assembly}: simulate community assembly in food webs.",
+                 "Package version 0.1.3.",
+                 "https://emilio-berti.github.io/assembly/.")
+)
