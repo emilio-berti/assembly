@@ -1,7 +1,7 @@
 Package: assembly
 Type: Package
 Title: Simulate community assembly
-Version: 0.1.3
+Version: 0.1.4
 Authors@R: 
     c(
     person(given = "Emilio", family = "Berti", email = "emilio.berti.academia@gmail.com",

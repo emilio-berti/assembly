@@ -30,19 +30,20 @@ metropolis.hastings <- function(old.value, new.value, t = 0){
 #' @param method character, same as in similarity (igraph). Options are
 #'   'jaccard', 'dice', and 'invlogweighted'.
 #' @param stat character, statistic used to summarize similarity. Currently
-#'   available are c("mean", "sum").
+#'   available are c("mean", "sum", "max").
+#' @param mode character, which edges are used to compute similarity. Currently
+#'   available are c("all", "in", "out").
 #'
 #' @details Similarities are calculated using igraph as matrices. To summarize
 #'   these into species-level metrics, the argument "stat" is needed. When stat
 #'   = "mean", probability of removal of species is proportional to the average
-#'   of their similarities. When stat = "sum", these probabilities are
-#'   proportional to the sum of the similarity of species. Global similarities,
-#'   i.e. of the whole food web, are also summarized depending on the "stat"
-#'   argument in a similar way.
+#'   of their similarities, etc. Global similarities, i.e. of the whole food web,
+#'   are also summarized depending on the "stat" argument in a similar way.
 #'
-#'   Similarity is computed using only 'in' links, i.e. species are considered
-#'   similar if they share similar resources, but not necessarily have similar
-#'   consumers.
+#'   When mode = 'in', similarity is computed using only 'in' links, i.e. species 
+#'   are considered similar if they share similar resources, but not necessarily 
+#'   have similar consumers. The opposite is treu when mode = 'out'. When 
+#'   mode = 'all' (default) all edges are considered.
 #'
 #' @return A vector with the species names.
 .move <- function(
@@ -50,14 +51,15 @@ metropolis.hastings <- function(old.value, new.value, t = 0){
   metaweb,
   t = 0,
   method = "jaccard",
-  stat = "mean"
+  stat = "mean",
+  mode = "all"
 ) {
   g <- graph_from_adjacency_matrix(metaweb[sp.names, sp.names])
   consumers <- intersect(sp.names, .consumers(metaweb))
   simil <- similarity(g,
                       vids = which(sp.names %in% consumers),
                       method = method,
-                      mode = "in")
+                      mode = mode)
   diag(simil) <- NA
   prob_removed <- apply(simil, MARGIN = 2, stat, na.rm = TRUE)
   remove <- sample(consumers, size = 1, prob = prob_removed)
@@ -75,7 +77,7 @@ metropolis.hastings <- function(old.value, new.value, t = 0){
   new.simil <- similarity(new.g,
                           vids = which(new.sp %in% consumers),
                           method = method,
-                          mode = "in")
+                          mode = mode)
   diag(new.simil) <- NA
   # summarize similarities
   if (stat == "mean") {
@@ -84,8 +86,11 @@ metropolis.hastings <- function(old.value, new.value, t = 0){
   } else if (stat == "sum") {
     simil <- sum(simil, na.rm = TRUE)
     new.simil <- sum(new.simil, na.rm = TRUE)
+  } else if (stat == "max") {
+    simil <- max(simil, na.rm = TRUE)
+    new.simil <- max(new.simil, na.rm = TRUE)
   } else {
-    stop("'stat' must be one of c('mean', 'sum')")
+    stop("'stat' must be one of c('mean', 'sum', 'max')")
   }
   # compare old and new similarity
   if (metropolis.hastings(simil, new.simil, t = t)) {
@@ -102,21 +107,22 @@ metropolis.hastings <- function(old.value, new.value, t = 0){
 #' @param t is the 'temperature' of the system.
 #' @param method character, same as in similarity (igraph). Options are
 #'   'jaccard', 'dice', and 'invlogweighted'.
+#' @param max.iter is the maximum number of moves computed.
 #' @param stat character, statistic used to summarize similarity. Currently
-#'   available are c("mean", "sum").
-#' @param max.iter is the number of maximum iterations.
+#'   available are c("mean", "sum", "max").
+#' @param mode character, which edges are used to compute similarity. Currently
+#'   available are c("all", "in", "out").
 #'
-#' @details Similarities are calculated using igraph. To summarize these into
-#'   species-level metrics, the argument 'stat' is needed. When stat = "mean",
-#'   probability of removal of species is proportional to the average of their
-#'   similarities. When stat = "sum", these probabilities are proportional to
-#'   the sum of the similarity of species. Global similarities, i.e. of the
-#'   whole food web, are also summarized depending on the "stat" argument in a
-#'   similar way.
+#' @details Similarities are calculated using igraph as matrices. To summarize
+#'   these into species-level metrics, the argument "stat" is needed. When stat
+#'   = "mean", probability of removal of species is proportional to the average
+#'   of their similarities, etc. Global similarities, i.e. of the whole food web,
+#'   are also summarized depending on the "stat" argument in a similar way.
 #'
-#'   Similarity is computed using only 'in' links, i.e. species are considered
-#'   similar if they share similar resources, but not necessarily have similar
-#'   consumers.
+#'   When mode = 'in', similarity is computed using only 'in' links, i.e. species 
+#'   are considered similar if they share similar resources, but not necessarily 
+#'   have similar consumers. The opposite is treu when mode = 'out'. When 
+#'   mode = 'all' (default) all edges are considered.
 #'
 #'   The temperature parameter 't' specifies the degree of stochasticity of the
 #'   algorithm. For t > 0, an unfavourable move can be accepted, if it passes a
@@ -131,6 +137,7 @@ similarity_filtering <- function(
   t = 0,
   method = "jaccard",
   stat = "mean",
+  mode = "all",
   max.iter = 1e3
 ) {
   if (t == 0) message("Temperature 't' = 0; this is a purely deterministic filtering")

@@ -4,7 +4,14 @@
 \alias{.move}
 \title{One move of the limiting similarity algorithm}
 \usage{
-.move(sp.names, metaweb, t = 0, method = "jaccard", stat = "mean")
+.move(
+  sp.names,
+  metaweb,
+  t = 0,
+  method = "jaccard",
+  stat = "mean",
+  mode = "all"
+)
 }
 \arguments{
 \item{sp.names}{vector, names of the species in the meta-community.}
@@ -17,7 +24,10 @@
 'jaccard', 'dice', and 'invlogweighted'.}
 
 \item{stat}{character, statistic used to summarize similarity. Currently
-available are c("mean", "sum").}
+available are c("mean", "sum", "max").}
+
+\item{mode}{character, which edges are used to compute similarity. Currently
+available are c("all", "in", "out").}
 }
 \value{
 A vector with the species names.
@@ -29,12 +39,11 @@ One move of the limiting similarity algorithm
 Similarities are calculated using igraph as matrices. To summarize
   these into species-level metrics, the argument "stat" is needed. When stat
   = "mean", probability of removal of species is proportional to the average
-  of their similarities. When stat = "sum", these probabilities are
-  proportional to the sum of the similarity of species. Global similarities,
-  i.e. of the whole food web, are also summarized depending on the "stat"
-  argument in a similar way.
+  of their similarities, etc. Global similarities, i.e. of the whole food web,
+  are also summarized depending on the "stat" argument in a similar way.
 
-  Similarity is computed using only 'in' links, i.e. species are considered
-  similar if they share similar resources, but not necessarily have similar
-  consumers.
+  When mode = 'in', similarity is computed using only 'in' links, i.e. species 
+  are considered similar if they share similar resources, but not necessarily 
+  have similar consumers. The opposite is treu when mode = 'out'. When 
+  mode = 'all' (default) all edges are considered.
 }
