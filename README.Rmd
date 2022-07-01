@@ -12,9 +12,6 @@ bibliography: references.bib
 [![Codecov test coverage](https://codecov.io/gh/emilio-berti/assembly/branch/master/graph/badge.svg)](https://codecov.io/gh/emilio-berti/assembly?branch=master)
 <!-- badges: end -->
 
-
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -56,6 +53,7 @@ Loading _assembly_ and set a random seed
 
 ```{r init}
 library(assembly)
+library(igraph)
 
 set.seed(123)
 ```
@@ -279,6 +277,46 @@ legend(x = 70, y = 130, fill = pal, legend = temps,
        box.lwd = 0, bg = NA)
 ```
 
+## Verbose output
+
+`similarity_filtering()` has the options to return verbose output. In this case, the returned object is not the vector of the name of the species, but a list with:
+
+- _species_, the vector with the species names
+- _mean.niche_, a vector with containing the mean of the trophic levels of resources for each consumers, averaged over the whole community
+- _var.niche_, a vector with containing the variance of the trophic levels of resources for each consumers, averaged over the whole community
+- _similarity_ the similarity statistics used to evaluate the moves.
+
+Each vector, except _species_, has length = _max.iter_. In the case a $i$ move was rejected, the `similarity[i] = 0`.
+
+```{r limiting_verbose}
+sp_sim <- similarity_filtering(sp_resource, adirondack, t = 1, max.iter = 10,
+                               output.verbose = TRUE)
+class(sp_sim)
+names(sp_sim)
+```
+
+This can be useful to check trends in niche packing when species similarity changes. For instance, for increasing similarity, species niche variance should decrease, implying that niches of different species overlap less.
+
+```{r limiting_verbose_plot_var, fig.height=5, fig.width=6, out.width="80%", echo=FALSE}
+plot(sp_sim$var.niche, pch = 20, col = "grey20",
+     xlab = "Move", ylab = "Niche variance",
+     frame = FALSE, axes = FALSE)
+axis(1, at = seq(1, 10))
+axis(2, at = seq(0.023, 0.037, by = 0.004))
+grid()
+```
+
+Average niche, however, may change more subtly. For example, decreasing similarity may imply decreasing average niche in the case that lower trophic levels are largely empty. However, it may also imply increasing average niche, e.g. by a new top consumer.
+
+```{r limiting_verbose_plot_mean, fig.height=5, fig.width=6, out.width="80%", echo=FALSE}
+plot(sp_sim$mean.niche, pch = 20, col = "grey20",
+     xlab = "Move", ylab = "Niche average",
+     frame = FALSE, axes = FALSE)
+axis(1, at = seq(1, 10))
+axis(2, at = seq(0.023, 0.037, by = 0.004))
+grid()
+```
+
 # Filtering algorithms and modularity
 
 Jaccard similarity is often used to detect modules in community detection problems. The rationale is that similarity is high within modules and low between modules. This implies that the limiting similarity filtering, in its purely deterministic version ($t = 0$), it will converge to food webs that are highly modular, as this minimize the total Jaccard similarity of the network. This effect is more pronounced in sparser networks, that is in food webs with lower connectance.
@@ -292,23 +330,23 @@ CONNECTANCE <- seq(.1, .3, by = .05)
 modularity <- matrix(rep(NA, REPS * length(CONNECTANCE)), nrow = REPS)
 similarity <- matrix(rep(NA, REPS * length(CONNECTANCE)), nrow = REPS)
 for (C in CONNECTANCE) {
-	for (rep in seq_len(REPS)) {
-		m <- matrix(as.numeric(runif(1e4) < C), 1e2, 1e2)
-		g <- graph_from_adjacency_matrix(m)
-		members <- membership(cluster_fast_greedy(as.undirected(g)))
-		modularity[rep, which (CONNECTANCE == C)] <- modularity(as.undirected(g), members)
-		sim <- similarity(g, mode = "in", method = "jaccard")
-		similarity[rep, which (CONNECTANCE == C)] <- mean(sim, na.rm = TRUE)
-	}
+  for (rep in seq_len(REPS)) {
+    m <- matrix(as.numeric(runif(1e4) < C), 1e2, 1e2)
+    g <- graph_from_adjacency_matrix(m)
+    members <- membership(cluster_fast_greedy(as.undirected(g)))
+    modularity[rep, which (CONNECTANCE == C)] <- modularity(as.undirected(g), members)
+    sim <- similarity(g, mode = "in", method = "jaccard")
+    similarity[rep, which (CONNECTANCE == C)] <- mean(sim, na.rm = TRUE)
+  }
 }
 ```
 
 ```{r modularity-plot, fig.height=5, fig.width=6, out.width="80%", echo=FALSE}
 d <- data.frame(
-	ID = rep(seq_len(REPS), length(CONNECTANCE)),
-	Connectance = rep(CONNECTANCE, each = REPS),
-	Similarity = as.vector(similarity),
-	Modularity = as.vector(modularity)
+  ID = rep(seq_len(REPS), length(CONNECTANCE)),
+  Connectance = rep(CONNECTANCE, each = REPS),
+  Similarity = as.vector(similarity),
+  Modularity = as.vector(modularity)
 )
 
 pal <- colorRampPalette(c("steelblue", "goldenrod"))(length(CONNECTANCE))
