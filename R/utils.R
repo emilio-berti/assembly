@@ -204,3 +204,28 @@ show_graph <- function(sp.names, metaweb, title = NULL) {
   cl <- cluster_fast_greedy(as.undirected(g))
   return (length(cl))
 }
+
+#' @title Trophic niches
+#'
+#' @details Calculate the trophic niche of species as the mean and variance of
+#'   the trophic level of their resources.
+#'
+#' @param sp.names vector of species names.
+#' @param metaweb adjacency matrix of the metaweb.
+#'
+#' @return matrix with mean and variance of the trophic level of species'
+#'   resources. These are both zero if the species is a basal resource.
+trophic_niche <- function(sp.names, metaweb) {
+  web <- metaweb[sp.names, sp.names]
+  tl <- trophic_levels(sp.names, metaweb)[, 1]
+  niche <- matrix(NA, ncol = 2, nrow = length(tl))
+  rownames(niche) <- names(tl)
+  colnames(niche) <- c("mean", "var")
+  for (x in names(tl)) {
+    diet_breadth <- tl[names(which(web[, colnames(web) == x] > 0))]
+    niche[x, ] <- c(mean(diet_breadth), var(diet_breadth))
+  }
+  niche[is.nan(niche[, "mean"]), "mean"] <- 0
+  niche[is.na(niche[, "var"]), "var"] <- 0
+  return(niche)
+}
