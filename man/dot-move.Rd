@@ -10,7 +10,8 @@
   t = 0,
   method = "jaccard",
   stat = "mean",
-  mode = "all"
+  mode = "all",
+  return.similarity = FALSE
 )
 }
 \arguments{
@@ -28,6 +29,9 @@ available are c("mean", "sum", "max").}
 
 \item{mode}{character, which edges are used to compute similarity. Currently
 available are c("all", "in", "out").}
+
+\item{return.similarity}{logical, if to return the difference in similarity
+score.}
 }
 \value{
 A vector with the species names.
@@ -39,11 +43,11 @@ One move of the limiting similarity algorithm
 Similarities are calculated using igraph as matrices. To summarize
   these into species-level metrics, the argument "stat" is needed. When stat
   = "mean", probability of removal of species is proportional to the average
-  of their similarities, etc. Global similarities, i.e. of the whole food web,
-  are also summarized depending on the "stat" argument in a similar way.
+  of their similarities, etc. Global similarities, i.e. of the whole food
+  web, are also summarized depending on the "stat" argument in a similar way.
 
-  When mode = 'in', similarity is computed using only 'in' links, i.e. species 
-  are considered similar if they share similar resources, but not necessarily 
-  have similar consumers. The opposite is treu when mode = 'out'. When 
-  mode = 'all' (default) all edges are considered.
+  When mode = 'in', similarity is computed using only 'in' links, i.e.
+  species are considered similar if they share similar resources, but not
+  necessarily have similar consumers. The opposite is treu when mode = 'out'.
+  When mode = 'all' (default) all edges are considered.
 }
