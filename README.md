@@ -29,21 +29,34 @@ community at once. The opposite, i.e. communities are built by
 sequential introductions of one species, is called bottom-up assembly.
 Bottom-up assembly is problematic for community composed of many
 species, as the number of unique assembly sequences is *S!*, where *S*
-is the number of species in the metaweb. For 100 species, for instance,
-there are
+is the number of species in the metaweb. If priority effects (historical
+contigencies) are important, Song, Fukami, and Saavedra (2021) found
+that this number is (much) higher, roughly:
+
+![ 
+\\frac{2^{2^{S - 2}S^2}e^S}{\\sqrt{2\\pi}S^{S + 0.5}}
+](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%20%0A%5Cfrac%7B2%5E%7B2%5E%7BS%20-%202%7DS%5E2%7De%5ES%7D%7B%5Csqrt%7B2%5Cpi%7DS%5E%7BS%20%2B%200.5%7D%7D%0A " 
+\frac{2^{2^{S - 2}S^2}e^S}{\sqrt{2\pi}S^{S + 0.5}}
+")
+
+Thus, for a conservative scenario where priority effects are not
+important in a 100 species community, there are
 ![\\sim 10^{157}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Csim%2010%5E%7B157%7D "\sim 10^{157}")
 unique sequences, making computations (and replications) virtually
-impossible. Strikingly, Serván and Allesina (2021) showed that bottop-up
-and top-down assembly are equivalent under some specific conditions.
+impossible. With priority effects, “already with 6 species, the
+diversity is significantly greater than the total number of atoms in the
+entire universe” (Song, Fukami, and Saavedra (2021)).
 
-Far from assuming this is the case in *assembly*, I simply want to
-highlight that *assembly* only implements top-down assembly and that
-none of the procedures in *assembly* can be considered steps in an
-ecological sequence. Whenever I talk about *steps*, *moves*, and
-*sequences* in *assembly*, I always refer to *procedures steps*,
-*procedures moves*, and *procedures sequences*. Always keep that in mind
-and don’t be fooled by the terminology; there is no bottom-up assembly
-in *assembly*.
+Strikingly, Serván and Allesina (2021) showed that bottom-up and
+top-down assembly are equivalent under some specific conditions. Far
+from assuming this is the case in *assembly*, for which more research is
+needed, I simply want to highlight that *assembly* only implements
+top-down assembly and that none of the procedures in *assembly* can be
+considered steps in an ecological sequence. Whenever I talk about
+*steps*, *moves*, and *sequences* in *assembly*, I always refer to
+*procedures steps*, *procedures moves*, and *procedures sequences*.
+Always keep that in mind and don’t be fooled by the terminology; there
+is no bottom-up assembly in *assembly*.
 
 At this point, if you’re like me, you will ask *why not bottom-up
 assembly?* The simple answer is: because it is computational unfeasible
@@ -651,11 +664,11 @@ dyn_lim <- create_model_Unscaled(nb_s, nb_b,
                                  metaweb[sp_limiting, sp_limiting])
 # default parameters
 initialise_default_Unscaled(dyn_random)
-#> C++ object <0x55735c4b7020> of class 'Unscaled' <0x55735c9ee6a0>
+#> C++ object <0x55f786c1e9a0> of class 'Unscaled' <0x55f7872708d0>
 initialise_default_Unscaled(dyn_res)
-#> C++ object <0x55735c4c1c00> of class 'Unscaled' <0x55735c9ee6a0>
+#> C++ object <0x55f786a62310> of class 'Unscaled' <0x55f7872708d0>
 initialise_default_Unscaled(dyn_lim)
-#> C++ object <0x55735b744460> of class 'Unscaled' <0x55735c9ee6a0>
+#> C++ object <0x55f78735cf70> of class 'Unscaled' <0x55f7872708d0>
 # initialize C++ fields
 dyn_random$initialisations()
 dyn_res$initialisations()
@@ -716,6 +729,14 @@ sum(sol_lim[length(times), (nb_b + 2) : nb_s])
 
 Serván, Carlos A, and Stefano Allesina. 2021. “Tractable Models of
 Ecological Assembly.” *Ecology Letters* 24 (5): 1029–37.
+
+</div>
+
+<div id="ref-song2021untangling" class="csl-entry">
+
+Song, Chuliang, Tadashi Fukami, and Serguei Saavedra. 2021. “Untangling
+the Complexity of Priority Effects in Multispecies Communities.”
+*Ecology Letters* 24 (11): 2301–13.
 
 </div>
 

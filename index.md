@@ -10,8 +10,6 @@ Emilio Berti
 coverage](https://codecov.io/gh/emilio-berti/assembly/branch/master/graph/badge.svg)](https://codecov.io/gh/emilio-berti/assembly?branch=master)
 <!-- badges: end -->
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
 # Getting started
 
 ## Background
@@ -31,21 +29,34 @@ community at once. The opposite, i.e. communities are built by
 sequential introductions of one species, is called bottom-up assembly.
 Bottom-up assembly is problematic for community composed of many
 species, as the number of unique assembly sequences is *S!*, where *S*
-is the number of species in the metaweb. For 100 species, for instance,
-there are
+is the number of species in the metaweb. If priority effects (historical
+contigencies) are important, Song, Fukami, and Saavedra (2021) found
+that this number is (much) higher, roughly:
+
+![ 
+\\frac{2^{2^{S - 2}S^2}e^S}{\\sqrt{2\\pi}S^{S + 0.5}}
+](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%20%0A%5Cfrac%7B2%5E%7B2%5E%7BS%20-%202%7DS%5E2%7De%5ES%7D%7B%5Csqrt%7B2%5Cpi%7DS%5E%7BS%20%2B%200.5%7D%7D%0A " 
+\frac{2^{2^{S - 2}S^2}e^S}{\sqrt{2\pi}S^{S + 0.5}}
+")
+
+Thus, for a conservative scenario where priority effects are not
+important in a 100 species community, there are
 ![\\sim 10^{157}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Csim%2010%5E%7B157%7D "\sim 10^{157}")
 unique sequences, making computations (and replications) virtually
-impossible. Strikingly, Serván and Allesina (2021) showed that bottop-up
-and top-down assembly are equivalent under some specific conditions.
+impossible. With priority effects, “already with 6 species, the
+diversity is significantly greater than the total number of atoms in the
+entire universe” (Song, Fukami, and Saavedra (2021)).
 
-Far from assuming this is the case in *assembly*, I simply want to
-highlight that *assembly* only implements top-down assembly and that
-none of the procedures in *assembly* can be considered steps in an
-ecological sequence. Whenever I talk about *steps*, *moves*, and
-*sequences* in *assembly*, I always refer to *procedures steps*,
-*procedures moves*, and *procedures sequences*. Always keep that in mind
-and don’t be fooled by the terminology; there is no bottom-up assembly
-in *assembly*.
+Strikingly, Serván and Allesina (2021) showed that bottom-up and
+top-down assembly are equivalent under some specific conditions. Far
+from assuming this is the case in *assembly*, for which more research is
+needed, I simply want to highlight that *assembly* only implements
+top-down assembly and that none of the procedures in *assembly* can be
+considered steps in an ecological sequence. Whenever I talk about
+*steps*, *moves*, and *sequences* in *assembly*, I always refer to
+*procedures steps*, *procedures moves*, and *procedures sequences*.
+Always keep that in mind and don’t be fooled by the terminology; there
+is no bottom-up assembly in *assembly*.
 
 At this point, if you’re like me, you will ask *why not bottom-up
 assembly?* The simple answer is: because it is computational unfeasible
@@ -85,7 +96,7 @@ Loading *assembly* and set a random seed
 
 ``` r
 library(assembly)
-#> Loading required package: igraph
+library(igraph)
 #> 
 #> Attaching package: 'igraph'
 #> The following objects are masked from 'package:stats':
@@ -203,7 +214,31 @@ procedure (more about this later):
 ``` r
 tryCatch(assembly:::.move(sp, adirondack, t = 1),
          error = function(e) print(e))
-#> <simpleError in assembly:::.move(sp, adirondack, t = 1): Isolated species detected in input>
+#>  [1] "Cosmarium sp."               "Alona costata"              
+#>  [3] "Anabaena flos-aquae"         "Fragilaria sp."             
+#>  [5] "Holopedium gibberum"         "Quadrigula closterioides"   
+#>  [7] "Crucigenia quadrata"         "Chlamydomonas sp."          
+#>  [9] "Chrysosphaerella longispina" "Euchlanis sp."              
+#> [11] "Arthrodesmus octocornis"     "Euglena acus"               
+#> [13] "Halotheca sp."               "Cyclops scutifer"           
+#> [15] "Polyarthra major"            "Staurastrum megacanthum"    
+#> [17] "Conochiloides hippocrepis"   "Scenedesmus sp."            
+#> [19] "Crucigenia crucifera"        "Bosmina longirostris"       
+#> [21] "Ascomorpha ecaudis"          "Sida crystallina"           
+#> [23] "Pediastrum tetras"           "Rhinichthys atratulus"      
+#> [25] "Schroederia setigera"        "Dinobryon sp."              
+#> [27] "Cocconeia sp."               "Euastrum sp."               
+#> [29] "Fragilaria crotonensis"      "Sphaerocystis schroeteri"   
+#> [31] "Peridinium wisconsinense"    "Keratella serrulata"        
+#> [33] "Ceriodaphnia quadrangula"    "Oncorhynchus mykiss"        
+#> [35] "Daphnia galeata"             "Polyarthra euryptera"       
+#> [37] "Micropterus salmoides"       "Peridinium limbatum"        
+#> [39] "Microsystis sp."             "Pimephales promelas"        
+#> [41] "Lepadella triptera"          "Tropocyclops prasinus"      
+#> [43] "Peridinium inconspicuum"     "Carteria sp."               
+#> [45] "Prosopium cylindraceum"      "Tabellaria flocculosa"      
+#> [47] "Aphanothece sp."             "Diatoma sp."                
+#> [49] "Catostomus catostomus"       "Micrasterias sp."
 ```
 
 This call to `assembly:::.move()` fails because isolated species are
@@ -293,10 +328,10 @@ assembly:::.move(sp_resource, adirondack, t = 1)
 #> [37] "Peridinium inconspicuum"     "Carteria sp."               
 #> [39] "Tabellaria flocculosa"       "Aphanothece sp."            
 #> [41] "Diatoma sp."                 "Micrasterias sp."           
-#> [43] "Diaphanosoma birgei"         "Salmo rutta"                
-#> [45] "Kelicottia bostoniensis"     "fish fry"                   
-#> [47] "Ankistrodesmus spiralis"     "Diaptomus minutus"          
-#> [49] "Colletheca mutabilis"        "Lepomis gibbosus"
+#> [43] "Salmo rutta"                 "Kelicottia bostoniensis"    
+#> [45] "fish fry"                    "Rhizosolenia eriensis"      
+#> [47] "Diaptomus minutus"           "Colletheca mutabilis"       
+#> [49] "Lepomis gibbosus"            "Keratella taurocephala"
 ```
 
 # Limiting similarity filtering
@@ -353,7 +388,7 @@ one, the move is always accepted. When the new similarity is higher than
 the old similarity, the move is accepted if:
 
 ![
-exp \\left\[ \\left( 1 - \\frac{similarity\_{new}}{similarity\_{old}} \\right) \\frac{1}{t} \\right\]&gt; \\mathcal{U}(0, 1)
+exp \\left\[ \\left( 1 - \\frac{similarity\_{new}}{similarity\_{old}} \\right) \\frac{1}{t} \\right\]\> \\mathcal{U}(0, 1)
 ](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%0Aexp%20%5Cleft%5B%20%5Cleft%28%201%20-%20%5Cfrac%7Bsimilarity_%7Bnew%7D%7D%7Bsimilarity_%7Bold%7D%7D%20%5Cright%29%20%5Cfrac%7B1%7D%7Bt%7D%20%5Cright%5D%3E%20%5Cmathcal%7BU%7D%280%2C%201%29%0A "
 exp \left[ \left( 1 - \frac{similarity_{new}}{similarity_{old}} \right) \frac{1}{t} \right]> \mathcal{U}(0, 1)
 ")
@@ -457,6 +492,48 @@ legend(x = 70, y = 130, fill = pal, legend = temps,
 
 <img src="man/figures/README-sim-trend-plot-1.png" width="80%" style="display: block; margin: auto;" />
 
+## Verbose output
+
+`similarity_filtering()` has the options to return verbose output. In
+this case, the returned object is not the vector of the name of the
+species, but a list with:
+
+-   *species*, the vector with the species names
+-   *mean.niche*, a vector with containing the mean of the trophic
+    levels of resources for each consumers, averaged over the whole
+    community
+-   *var.niche*, a vector with containing the variance of the trophic
+    levels of resources for each consumers, averaged over the whole
+    community
+-   *similarity* the similarity statistics used to evaluate the moves.
+
+Each vector, except *species*, has length = *max.iter*. In the case a
+![i](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;i "i")
+move was rejected, the `similarity[i] = 0`.
+
+``` r
+sp_sim <- similarity_filtering(sp_resource, adirondack, t = 1, max.iter = 10,
+                               output.verbose = TRUE)
+class(sp_sim)
+#> [1] "list"
+names(sp_sim)
+#> [1] "species"    "mean.niche" "var.niche"  "similarity"
+```
+
+This can be useful to check trends in niche packing when species
+similarity changes. For instance, for increasing similarity, species
+niche variance should decrease, implying that niches of different
+species overlap less.
+
+<img src="man/figures/README-limiting_verbose_plot_var-1.png" width="80%" style="display: block; margin: auto;" />
+
+Average niche, however, may change more subtly. For example, decreasing
+similarity may imply decreasing average niche in the case that lower
+trophic levels are largely empty. However, it may also imply increasing
+average niche, e.g. by a new top consumer.
+
+<img src="man/figures/README-limiting_verbose_plot_mean-1.png" width="80%" style="display: block; margin: auto;" />
+
 # Filtering algorithms and modularity
 
 Jaccard similarity is often used to detect modules in community
@@ -480,14 +557,14 @@ CONNECTANCE <- seq(.1, .3, by = .05)
 modularity <- matrix(rep(NA, REPS * length(CONNECTANCE)), nrow = REPS)
 similarity <- matrix(rep(NA, REPS * length(CONNECTANCE)), nrow = REPS)
 for (C in CONNECTANCE) {
-    for (rep in seq_len(REPS)) {
-        m <- matrix(as.numeric(runif(1e4) < C), 1e2, 1e2)
-        g <- graph_from_adjacency_matrix(m)
-        members <- membership(cluster_fast_greedy(as.undirected(g)))
-        modularity[rep, which (CONNECTANCE == C)] <- modularity(as.undirected(g), members)
-        sim <- similarity(g, mode = "in", method = "jaccard")
-        similarity[rep, which (CONNECTANCE == C)] <- mean(sim, na.rm = TRUE)
-    }
+  for (rep in seq_len(REPS)) {
+    m <- matrix(as.numeric(runif(1e4) < C), 1e2, 1e2)
+    g <- graph_from_adjacency_matrix(m)
+    members <- membership(cluster_fast_greedy(as.undirected(g)))
+    modularity[rep, which (CONNECTANCE == C)] <- modularity(as.undirected(g), members)
+    sim <- similarity(g, mode = "in", method = "jaccard")
+    similarity[rep, which (CONNECTANCE == C)] <- mean(sim, na.rm = TRUE)
+  }
 }
 ```
 
@@ -545,13 +622,13 @@ filtering:
 ``` r
 sp <- draw_random_species(30, colnames(metaweb))
 length(setdiff(sp, assembly:::.basals(metaweb)))
-#> [1] 19
+#> [1] 20
 sp_resource <- resource_filtering(sp, metaweb, keep.n.basal = TRUE)
 length(setdiff(sp_resource, assembly:::.basals(metaweb)))
-#> [1] 19
+#> [1] 20
 sp_limiting <- similarity_filtering(sp_resource, metaweb, t = 1e6, max.iter = 1e2)
 length(setdiff(sp_limiting, assembly:::.basals(metaweb)))
-#> [1] 19
+#> [1] 20
 
 show_graph(sp, metaweb, title = "Random")
 ```
@@ -587,11 +664,11 @@ dyn_lim <- create_model_Unscaled(nb_s, nb_b,
                                  metaweb[sp_limiting, sp_limiting])
 # default parameters
 initialise_default_Unscaled(dyn_random)
-#> C++ object <0x555f012d0800> of class 'Unscaled' <0x555f03315660>
+#> C++ object <0x55f786c1e9a0> of class 'Unscaled' <0x55f7872708d0>
 initialise_default_Unscaled(dyn_res)
-#> C++ object <0x555f02146810> of class 'Unscaled' <0x555f03315660>
+#> C++ object <0x55f786a62310> of class 'Unscaled' <0x55f7872708d0>
 initialise_default_Unscaled(dyn_lim)
-#> C++ object <0x555effee78f0> of class 'Unscaled' <0x555f03315660>
+#> C++ object <0x55f78735cf70> of class 'Unscaled' <0x55f7872708d0>
 # initialize C++ fields
 dyn_random$initialisations()
 dyn_res$initialisations()
@@ -637,11 +714,11 @@ As well as the final total biomass of all consumers combined:
 
 ``` r
 sum(sol_random[length(times), (nb_b + 2) : nb_s])
-#> [1] 5.502836
+#> [1] 11.45064
 sum(sol_res[length(times), (nb_b + 2) : nb_s])
-#> [1] 5.502836
+#> [1] 11.45064
 sum(sol_lim[length(times), (nb_b + 2) : nb_s])
-#> [1] 5.132601
+#> [1] 7.290431
 ```
 
 # References
@@ -652,6 +729,14 @@ sum(sol_lim[length(times), (nb_b + 2) : nb_s])
 
 Serván, Carlos A, and Stefano Allesina. 2021. “Tractable Models of
 Ecological Assembly.” *Ecology Letters* 24 (5): 1029–37.
+
+</div>
+
+<div id="ref-song2021untangling" class="csl-entry">
+
+Song, Chuliang, Tadashi Fukami, and Serguei Saavedra. 2021. “Untangling
+the Complexity of Priority Effects in Multispecies Communities.”
+*Ecology Letters* 24 (11): 2301–13.
 
 </div>
 
