@@ -1,14 +1,8 @@
 Emilio Berti
 
-<!-- badges: start -->
-
 [![R-CMD-check](https://github.com/emilio-berti/assembly/workflows/R-CMD-check/badge.svg)](https://github.com/emilio-berti/assembly/actions)
 
 [![DOI](https://zenodo.org/badge/454057297.svg)](https://zenodo.org/badge/latestdoi/454057297)
-
-[![Codecov test
-coverage](https://codecov.io/gh/emilio-berti/assembly/branch/master/graph/badge.svg)](https://codecov.io/gh/emilio-berti/assembly?branch=master)
-<!-- badges: end -->
 
 # Getting started
 
@@ -33,15 +27,11 @@ is the number of species in the metaweb. If priority effects (historical
 contigencies) are important, Song, Fukami, and Saavedra (2021) found
 that this number is (much) higher, roughly:
 
-![ 
-\\frac{2^{2^{S - 2}S^2}e^S}{\\sqrt{2\\pi}S^{S + 0.5}}
-](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%20%0A%5Cfrac%7B2%5E%7B2%5E%7BS%20-%202%7DS%5E2%7De%5ES%7D%7B%5Csqrt%7B2%5Cpi%7DS%5E%7BS%20%2B%200.5%7D%7D%0A " 
-\frac{2^{2^{S - 2}S^2}e^S}{\sqrt{2\pi}S^{S + 0.5}}
-")
+![\frac{2^{2^{S - 2}S^2}e^S}{\sqrt{2\pi}S^{S + 0.5}}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cfrac%7B2%5E%7B2%5E%7BS%20-%202%7DS%5E2%7De%5ES%7D%7B%5Csqrt%7B2%5Cpi%7DS%5E%7BS%20%2B%200.5%7D%7D "\frac{2^{2^{S - 2}S^2}e^S}{\sqrt{2\pi}S^{S + 0.5}}")
 
 Thus, for a conservative scenario where priority effects are not
 important in a 100 species community, there are
-![\\sim 10^{157}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Csim%2010%5E%7B157%7D "\sim 10^{157}")
+![\sim 10^{157}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Csim%2010%5E%7B157%7D "\sim 10^{157}")
 unique sequences, making computations (and replications) virtually
 impossible. With priority effects, “already with 6 species, the
 diversity is significantly greater than the total number of atoms in the
@@ -387,11 +377,7 @@ similarity of the new community is lower than the similarity of the old
 one, the move is always accepted. When the new similarity is higher than
 the old similarity, the move is accepted if:
 
-![
-exp \\left\[ \\left( 1 - \\frac{similarity\_{new}}{similarity\_{old}} \\right) \\frac{1}{t} \\right\]\> \\mathcal{U}(0, 1)
-](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%0Aexp%20%5Cleft%5B%20%5Cleft%28%201%20-%20%5Cfrac%7Bsimilarity_%7Bnew%7D%7D%7Bsimilarity_%7Bold%7D%7D%20%5Cright%29%20%5Cfrac%7B1%7D%7Bt%7D%20%5Cright%5D%3E%20%5Cmathcal%7BU%7D%280%2C%201%29%0A "
-exp \left[ \left( 1 - \frac{similarity_{new}}{similarity_{old}} \right) \frac{1}{t} \right]> \mathcal{U}(0, 1)
-")
+![exp \left\[ \left( 1 - \frac{similarity\_{new}}{similarity\_{old}} \right) \frac{1}{t} \right\]\> \mathcal{U}(0, 1)](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;exp%20%5Cleft%5B%20%5Cleft%28%201%20-%20%5Cfrac%7Bsimilarity_%7Bnew%7D%7D%7Bsimilarity_%7Bold%7D%7D%20%5Cright%29%20%5Cfrac%7B1%7D%7Bt%7D%20%5Cright%5D%3E%20%5Cmathcal%7BU%7D%280%2C%201%29 "exp \left[ \left( 1 - \frac{similarity_{new}}{similarity_{old}} \right) \frac{1}{t} \right]> \mathcal{U}(0, 1)")
 
 This means that, even when the new similarity is higher than the old one
 and the new community has species with increased similarity of
@@ -664,11 +650,11 @@ dyn_lim <- create_model_Unscaled(nb_s, nb_b,
                                  metaweb[sp_limiting, sp_limiting])
 # default parameters
 initialise_default_Unscaled(dyn_random)
-#> C++ object <0x55f786c1e9a0> of class 'Unscaled' <0x55f7872708d0>
+#> C++ object <0x55f00ffe0c30> of class 'Unscaled' <0x55f00dcc10d0>
 initialise_default_Unscaled(dyn_res)
-#> C++ object <0x55f786a62310> of class 'Unscaled' <0x55f7872708d0>
+#> C++ object <0x55f0123dfd30> of class 'Unscaled' <0x55f00dcc10d0>
 initialise_default_Unscaled(dyn_lim)
-#> C++ object <0x55f78735cf70> of class 'Unscaled' <0x55f7872708d0>
+#> C++ object <0x55f0112f9320> of class 'Unscaled' <0x55f00dcc10d0>
 # initialize C++ fields
 dyn_random$initialisations()
 dyn_res$initialisations()

@@ -1,6 +1,6 @@
 Package: assembly
 Type: Package
-Title: Simulate community assembly
+Title: Simulate Community Assembly
 Version: 0.1.5
 Authors@R: 
     c(
